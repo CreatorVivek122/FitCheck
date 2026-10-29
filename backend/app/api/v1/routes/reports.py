@@ -1,0 +1,144 @@
+from fastapi import APIRouter, Depends, Query, Response
+from typing import Optional
+from sqlalchemy.ext.asyncio import AsyncSession
+from app.db.session import get_db
+from app.core.security import get_current_user_id
+from app.schemas.report import (
+    FitReportResponse,
+    ReportUpdateRequest,
+    ReportCompareRequest,
+    ReportCompareResponse
+)
+from app.schemas.common import PaginatedResponse
+from app.services.storage_service import get_storage_provider, StorageProvider
+from app.services.report_service import ReportService
+
+router = APIRouter(prefix="/reports", tags=["reports"])
+
+@router.get("", response_model=PaginatedResponse[FitReportResponse])
+async def list_reports(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    q: Optional[str] = Query(None, description="Search keyword in title or notes"),
+    occasion: Optional[str] = Query(None),
+    sort: str = Query("newest", pattern="^(newest|score_desc|score_asc)$"),
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    return await service.list_reports(
+        user_id=user_id,
+        page=page,
+        limit=limit,
+        query=q,
+        occasion=occasion,
+        sort_by=sort
+    )
+
+@router.get("/{report_id}", response_model=FitReportResponse)
+async def get_report(
+    report_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    return await service.get_report(user_id, report_id)
+
+@router.patch("/{report_id}", response_model=FitReportResponse)
+async def update_report(
+    report_id: str,
+    req: ReportUpdateRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    return await service.update_report(
+        user_id=user_id,
+        report_id=report_id,
+        user_note=req.user_note,
+        is_favorite=req.is_favorite
+    )
+
+@router.delete("/{report_id}")
+async def delete_report(
+    report_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    await service.delete_report(user_id, report_id)
+    return {"status": "deleted", "report_id": report_id}
+
+@router.post("/compare", response_model=ReportCompareResponse)
+async def compare_reports(
+    req: ReportCompareRequest,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    return await service.compare_reports(
+        user_id=user_id,
+        report_a_id=req.report_a_id,
+        report_b_id=req.report_b_id,
+        target_occasion=req.target_occasion
+    )
+
+@router.get("/{report_id}/export")
+async def export_report_file(
+    report_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+    storage: StorageProvider = Depends(get_storage_provider)
+):
+    service = ReportService(db, storage)
+    r = await service.get_report(user_id, report_id)
+
+    lines = [
+        f"══════════════════════════════════════════════════════",
+        f"                 FITCHECK STYLE REPORT                ",
+        f"        Your Fit. Your Style. Your Score.             ",
+        f"══════════════════════════════════════════════════════",
+        f"",
+        f"Aesthetic Title : {r.style_title}",
+        f"Overall FitScore: {r.overall_score if r.overall_score is not None else 'N/A'} / 100",
+        f"Confidence      : {r.overall_confidence.capitalize()}",
+        f"Description     : {r.style_description}",
+        f"",
+        f"─── PILLAR EVALUATION ────────────────────────────────",
+    ]
+    for key, detail in r.scores.items():
+        name = key.replace("_", " ").title()
+        score_val = f"{detail.score}/100" if detail.score is not None else "Insufficient Visibility"
+        lines.append(f"• {name:20}: {score_val}")
+        lines.append(f"  Rationale: {detail.rationale}")
+
+    lines.extend([
+        f"",
+        f"─── WHAT WORKS WELL ──────────────────────────────────",
+        *[f"✓ {w}" for w in r.what_works],
+        f"",
+        f"─── REFINEMENT OPPORTUNITIES ─────────────────────────",
+        *[f"→ {imp}" for imp in r.improvements],
+        f"",
+        f"─── STYLING UPGRADES ─────────────────────────────────",
+        *[f"+ {up}" for up in r.styling_ideas],
+        f"",
+        f"─── LIMITATIONS & CAVEATS ────────────────────────────",
+        *[f"! {lim}" for lim in r.limitations],
+        f"",
+        f"══════════════════════════════════════════════════════",
+        f"Generated by FitCheck AI Engine (Rubric v{r.rubric_version})",
+        f"Scores are constructive styling estimates, not body judgments."
+    ])
+
+    export_text = "\n".join(lines)
+    return Response(
+        content=export_text,
+        media_type="text/plain",
+        headers={"Content-Disposition": f"attachment; filename=fitcheck-report-{report_id[:8]}.txt"}
+    )

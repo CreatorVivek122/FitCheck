@@ -1,0 +1,29 @@
+# Environment secrets & API keys
+.env
+*.env
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*.venv/
+venv/
+.pytest_cache/
+
+# Database & Storage
+*.db
+*.sqlite3
+storage_data/
+test_storage/
+backend/storage_data/
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db
+
