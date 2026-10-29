@@ -58,19 +58,21 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onDataWiped
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(22, 20, 19, 0.75)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'var(--overlay-bg)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 60,
+      zIndex: 70,
       padding: '20px',
     }}>
       <div className="card" style={{
         maxWidth: '520px',
         width: '100%',
         padding: '32px',
-        backgroundColor: 'var(--card)',
+        backgroundColor: 'var(--modal-bg)',
+        border: '1px solid var(--line-strong)',
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-lg)',
         position: 'relative',
@@ -89,146 +91,139 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onDataWiped
             border: 'none',
             cursor: 'pointer',
             color: 'var(--mute)',
+            padding: '4px',
           }}
         >
           <X size={20} />
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
           <div style={{
-            width: '44px',
-            height: '44px',
+            width: '46px',
+            height: '46px',
             borderRadius: '50%',
             backgroundColor: 'var(--acc2)',
             color: 'var(--acc)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
+            border: '1px solid rgba(244, 155, 172, 0.3)',
           }}>
-            <User size={20} />
+            <User size={22} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.4rem' }}>Stylist Profile & Preferences</h3>
+            <h3 style={{ fontSize: '1.4rem', marginBottom: '2px' }}>Stylist Preferences</h3>
             <p className="mute" style={{ fontSize: '0.85rem', margin: 0 }}>
-              Saved in your secure database backend.
+              Tailor default parameters for your AI outfit analyses.
             </p>
           </div>
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--mute)' }}>Loading profile...</div>
+          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--mute)' }}>
+            Loading settings...
+          </div>
         ) : (
           <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '6px' }}>
-                Your Name / Handle
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
+                Your Stylist Alias
               </label>
               <input
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--line)',
-                  backgroundColor: 'var(--bg)',
-                  color: 'var(--ink)',
-                  fontSize: '0.92rem',
-                }}
+                className="form-input"
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '6px' }}>
-                Default Occasion
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
+                Default Target Occasion
               </label>
-              <select
+              <input
+                type="text"
                 value={defaultOccasion}
                 onChange={(e) => setDefaultOccasion(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--line)',
-                  backgroundColor: 'var(--bg)',
-                  color: 'var(--ink)',
-                  fontSize: '0.92rem',
-                }}
-              >
-                <option value="Everyday / Casual">Everyday / Casual</option>
-                <option value="College & Campus">College & Campus</option>
-                <option value="Office & Smart Casual">Office & Smart Casual</option>
-                <option value="Date Night & Cocktails">Date Night & Cocktails</option>
-                <option value="Modern Streetwear">Modern Streetwear</option>
-                <option value="Party & Evening Event">Party & Evening Event</option>
-              </select>
+                className="form-input"
+              />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '6px' }}>
-                Preferred Style Aesthetic
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
+                Preferred Aesthetic
               </label>
-              <select
+              <input
+                type="text"
                 value={preferredStyle}
                 onChange={(e) => setPreferredStyle(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 'var(--radius-sm)',
-                  border: '1px solid var(--line)',
-                  backgroundColor: 'var(--bg)',
-                  color: 'var(--ink)',
-                  fontSize: '0.92rem',
-                }}
+                className="form-input"
+              />
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.86rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
+                Styling Tone
+              </label>
+              <select
+                value={feedbackTone}
+                onChange={(e) => setFeedbackTone(e.target.value)}
+                className="form-select"
               >
-                <option value="Minimalist & Tonal">Minimalist & Tonal</option>
-                <option value="Modern Streetwear">Modern Streetwear</option>
-                <option value="Old Money / Quiet Luxury">Old Money / Quiet Luxury</option>
-                <option value="Y2K & Vintage Retro">Y2K & Vintage Retro</option>
-                <option value="Smart Casual Tailored">Smart Casual Tailored</option>
-                <option value="Clean Athleisure">Clean Athleisure</option>
+                <option value="Honest and direct">Honest and direct</option>
+                <option value="Gentle and encouraging">Gentle and encouraging</option>
+                <option value="Editorial Stylist Deep-Dive">Editorial Stylist Deep-Dive</option>
               </select>
             </div>
 
-            <button type="submit" className="btn primary" style={{ marginTop: '8px' }}>
-              {isSaved ? <Check size={16} /> : null}
-              {isSaved ? 'Preferences Saved' : 'Save Preferences'}
-            </button>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+              <button type="submit" className="btn primary" style={{ flex: 1 }}>
+                {isSaved ? <><Check size={16} /> Saved</> : 'Save Preferences'}
+              </button>
+            </div>
           </form>
         )}
 
-        {/* Data & Privacy Controls */}
+        {/* Data & Privacy Actions */}
         <div style={{
-          marginTop: '32px',
-          paddingTop: '24px',
+          marginTop: '28px',
+          paddingTop: '20px',
           borderTop: '1px solid var(--line)',
           display: 'flex',
           flexDirection: 'column',
           gap: '12px',
         }}>
-          <span style={{ fontSize: '0.82rem', color: 'var(--mute)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.04em' }}>
-            Data Privacy & Export
+          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--mute)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+            Data Privacy & GDPR Controls
           </span>
 
-          <a
-            href={api.getUserExportUrl()}
-            download="fitcheck-archive.json"
-            className="btn"
-            style={{ width: '100%' }}
-          >
-            <Download size={15} />
-            Export My Data Archive (JSON)
-          </a>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              onClick={async () => {
+                const archive = await api.exportUserData();
+                const blob = new Blob([JSON.stringify(archive, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `fitcheck-gdpr-archive-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+              }}
+              className="btn sm outline"
+              style={{ flex: 1, gap: '6px' }}
+            >
+              <Download size={14} /> Export All My Data
+            </button>
 
-          <button
-            onClick={handleWipeData}
-            className="btn"
-            style={{ width: '100%', color: 'var(--acc)', borderColor: 'var(--line-strong)' }}
-          >
-            <Trash2 size={15} />
-            Permanently Wipe All Data
-          </button>
+            <button
+              type="button"
+              onClick={handleWipeData}
+              className="btn sm outline"
+              style={{ color: '#f87171', borderColor: 'rgba(239, 68, 68, 0.3)', gap: '6px' }}
+            >
+              <Trash2 size={14} /> Delete All Records
+            </button>
+          </div>
         </div>
       </div>
     </div>

@@ -22,27 +22,35 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
     canvas.width = 600;
     canvas.height = 900;
 
-    // Background gradient
+    // Luxury Dark Gradient Background (matching new UI)
     const bgGrad = ctx.createLinearGradient(0, 0, 0, 900);
-    bgGrad.addColorStop(0, '#fbf9f5');
-    bgGrad.addColorStop(1, '#efe6dd');
+    bgGrad.addColorStop(0, '#130f17');
+    bgGrad.addColorStop(0.5, '#0e0b12');
+    bgGrad.addColorStop(1, '#18121d');
     ctx.fillStyle = bgGrad;
     ctx.fillRect(0, 0, 600, 900);
 
-    // Border line
-    ctx.strokeStyle = '#e2d7c9';
-    ctx.lineWidth = 12;
-    ctx.strokeRect(16, 16, 568, 868);
+    // Subtle ambient glow at top
+    const glow = ctx.createRadialGradient(300, 150, 20, 300, 150, 280);
+    glow.addColorStop(0, 'rgba(244, 155, 172, 0.15)');
+    glow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, 600, 500);
+
+    // Border line (Blush pink accent border)
+    ctx.strokeStyle = 'rgba(244, 155, 172, 0.28)';
+    ctx.lineWidth = 4;
+    ctx.strokeRect(18, 18, 564, 864);
 
     // Header Branding
-    ctx.fillStyle = '#6d1f2f';
-    ctx.font = 'italic 500 32px Newsreader, serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '500 32px Newsreader, serif';
     ctx.textAlign = 'center';
-    ctx.fillText('FitCheck', 300, 72);
+    ctx.fillText('FitCheck.', 300, 68);
 
-    ctx.fillStyle = '#736b63';
-    ctx.font = '500 12px "DM Sans", sans-serif';
-    ctx.fillText('EDITORIAL AI STYLE REPORT', 300, 94);
+    ctx.fillStyle = '#f49bac';
+    ctx.font = '700 11px "DM Sans", sans-serif';
+    ctx.fillText('EDITORIAL AI FASHION ANALYSIS', 300, 90);
 
     // Load and draw photo
     if (report.image_url) {
@@ -52,7 +60,7 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
         // Draw image frame
         ctx.save();
         ctx.beginPath();
-        ctx.roundRect(50, 120, 500, 500, [16]);
+        ctx.roundRect(50, 115, 500, 500, [18]);
         ctx.clip();
 
         // Calculate aspect fill
@@ -71,22 +79,29 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
           sY = (img.height - sH) / 2;
         }
 
-        ctx.drawImage(img, sX, sY, sW, sH, 50, 120, 500, 500);
+        ctx.drawImage(img, sX, sY, sW, sH, 50, 115, 500, 500);
         ctx.restore();
 
-        // Draw FitScore Badge over corner of image
-        ctx.fillStyle = '#6d1f2f';
+        // Image stroke overlay
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 2;
         ctx.beginPath();
-        ctx.roundRect(410, 140, 120, 56, [28]);
+        ctx.roundRect(50, 115, 500, 500, [18]);
+        ctx.stroke();
+
+        // Draw FitScore Badge in bottom-right corner of image
+        ctx.fillStyle = '#f49bac';
+        ctx.beginPath();
+        ctx.roundRect(390, 545, 140, 52, [26]);
         ctx.fill();
 
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#120e14';
         ctx.font = 'bold 24px "DM Sans", sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`${report.overall_score || 0}`, 456, 176);
+        ctx.fillText(`${report.overall_score || 0}`, 438, 580);
 
-        ctx.font = '500 12px "DM Sans", sans-serif';
-        ctx.fillText('/100', 496, 176);
+        ctx.font = '600 13px "DM Sans", sans-serif';
+        ctx.fillText('/ 100', 484, 580);
 
         drawBottomDetails();
       };
@@ -101,32 +116,32 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
     function drawBottomDetails() {
       if (!ctx) return;
       // Style Title
-      ctx.fillStyle = '#1f1d1b';
-      ctx.font = '400 36px Newsreader, serif';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = '500 32px Newsreader, serif';
       ctx.textAlign = 'center';
-      ctx.fillText(report.style_title, 300, 670);
+      ctx.fillText(report.style_title, 300, 665);
 
       // Subtitle
-      ctx.fillStyle = '#736b63';
-      ctx.font = '400 15px "DM Sans", sans-serif';
-      ctx.fillText(report.style_description.slice(0, 55) + '...', 300, 702);
+      ctx.fillStyle = '#a69ea9';
+      ctx.font = '400 14px "DM Sans", sans-serif';
+      ctx.fillText(report.style_description.slice(0, 55) + '...', 300, 696);
 
       // Extracted Color Palette Swatches
       if (report.extracted_palette && report.extracted_palette.length > 0) {
         const startX = 300 - (report.extracted_palette.length * 36) / 2;
         report.extracted_palette.forEach((p, idx) => {
           ctx.beginPath();
-          ctx.arc(startX + idx * 36 + 18, 750, 14, 0, Math.PI * 2);
+          ctx.arc(startX + idx * 36 + 18, 745, 14, 0, Math.PI * 2);
           ctx.fillStyle = p.hex;
           ctx.fill();
-          ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+          ctx.strokeStyle = 'rgba(255,255,255,0.25)';
           ctx.lineWidth = 1.5;
           ctx.stroke();
         });
       }
 
       // Footer
-      ctx.fillStyle = '#a69e96';
+      ctx.fillStyle = '#6e6573';
       ctx.font = '500 12px "DM Sans", sans-serif';
       ctx.fillText('Your Fit. Your Style. Your Score. · fitcheck.ai', 300, 830);
     }
@@ -162,19 +177,21 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
     <div style={{
       position: 'fixed',
       inset: 0,
-      backgroundColor: 'rgba(22, 20, 19, 0.75)',
-      backdropFilter: 'blur(8px)',
+      backgroundColor: 'var(--overlay-bg)',
+      backdropFilter: 'blur(16px)',
+      WebkitBackdropFilter: 'blur(16px)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 60,
+      zIndex: 70,
       padding: '20px',
     }}>
       <div className="card" style={{
         maxWidth: '460px',
         width: '100%',
         padding: '24px',
-        backgroundColor: 'var(--card)',
+        backgroundColor: 'var(--modal-bg)',
+        border: '1px solid var(--line-strong)',
         borderRadius: 'var(--radius-lg)',
         boxShadow: 'var(--shadow-lg)',
         position: 'relative',
@@ -194,24 +211,28 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
             border: 'none',
             cursor: 'pointer',
             color: 'var(--mute)',
+            padding: '4px',
           }}
         >
           <X size={20} />
         </button>
 
-        <h3 style={{ marginBottom: '4px', textAlign: 'center' }}>Share Your FitCheck</h3>
-        <p className="mute" style={{ fontSize: '0.88rem', marginBottom: '16px', textAlign: 'center' }}>
-          Formatted for Instagram Stories, TikTok, or group chats.
+        <h3 style={{ marginBottom: '4px', textAlign: 'center', fontSize: '1.35rem' }}>
+          Magazine Share Card
+        </h3>
+        <p className="mute" style={{ fontSize: '0.86rem', marginBottom: '18px', textAlign: 'center' }}>
+          High-res vertical 9:16 story format for Instagram, TikTok, or friends.
         </p>
 
         {/* Canvas Display */}
         <div style={{
           width: '100%',
-          maxWidth: '300px',
+          maxWidth: '280px',
           aspectRatio: '9/13.5',
           borderRadius: 'var(--radius-sm)',
           overflow: 'hidden',
-          boxShadow: 'var(--shadow-md)',
+          boxShadow: '0 12px 35px rgba(0, 0, 0, 0.65)',
+          border: '1px solid rgba(244, 155, 172, 0.3)',
           marginBottom: '20px',
         }}>
           <canvas
@@ -221,14 +242,14 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
         </div>
 
         {/* Action Buttons */}
-        <div style={{ display: 'flex', gap: '12px', width: '100%', justifyContent: 'center' }}>
+        <div style={{ display: 'flex', gap: '10px', width: '100%', justifyContent: 'center' }}>
           <button onClick={handleDownload} className="btn primary" style={{ flex: 1 }}>
             <Download size={16} />
-            Download Image
+            Download PNG
           </button>
-          <button onClick={handleCopy} className="btn" style={{ flex: 1 }}>
+          <button onClick={handleCopy} className="btn outline" style={{ flex: 1 }}>
             {copied ? <Check size={16} style={{ color: 'var(--ok)' }} /> : <Copy size={16} />}
-            {copied ? 'Copied!' : 'Copy to Clipboard'}
+            {copied ? 'Copied!' : 'Copy'}
           </button>
         </div>
       </div>

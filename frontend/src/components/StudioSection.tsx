@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, RefreshCw, Sparkles, Check, AlertCircle, ArrowRight, Shield } from 'lucide-react';
+import { Upload, X, RefreshCw, Sparkles, Check, AlertCircle, ArrowRight, Shield, Camera } from 'lucide-react';
 import { api } from '../services/api';
 import type { FitReport } from '../types';
 
@@ -136,14 +136,31 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
   ];
 
   return (
-    <div style={{ maxWidth: '960px', margin: '0 auto', padding: '40px 0 80px' }}>
-      <div style={{ textAlign: 'center', marginBottom: '36px' }}>
+    <div style={{ maxWidth: '1000px', margin: '0 auto', padding: '36px 0 80px' }}>
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .spin {
+          animation: spin 1.2s linear infinite;
+        }
+        @media (max-width: 820px) {
+          .studio-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+        }
+      `}</style>
+
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: '38px' }}>
         <span className="badge" style={{ marginBottom: '12px' }}>
           <Sparkles size={13} /> FitCheck Studio
         </span>
-        <h2>Check Your Fit</h2>
-        <p className="mute">
-          Upload a full-length outfit photo to receive instant, objective styling feedback.
+        <h2 style={{ fontSize: '2.4rem', marginBottom: '8px' }}>Check Your Fit</h2>
+        <p className="lead" style={{ margin: '0 auto', fontSize: '1.02rem' }}>
+          Upload your outfit photo for instant AI scoring, color harmony breakdown, and custom styling advice.
         </p>
       </div>
 
@@ -152,9 +169,12 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
         gridTemplateColumns: previewUrl ? '1fr 1fr' : '1fr',
         gap: '32px',
         alignItems: 'start',
-      }}>
+      }} className="studio-grid">
         {/* Upload Zone */}
-        <div className="card">
+        <div className="card" style={{
+          background: 'var(--card-subtle)',
+          border: '1px solid var(--line)',
+        }}>
           {!previewUrl ? (
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
@@ -167,33 +187,36 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
               onClick={() => fileInputRef.current?.click()}
               style={{
                 border: `2px dashed ${isDragging ? 'var(--acc)' : 'var(--line-strong)'}`,
-                backgroundColor: isDragging ? 'var(--acc2)' : 'var(--card-subtle)',
+                backgroundColor: isDragging ? 'var(--acc2)' : 'var(--card)',
                 borderRadius: 'var(--radius-md)',
-                padding: '56px 24px',
+                padding: '60px 24px',
                 textAlign: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
+                transition: 'all 0.25s ease',
               }}
             >
               <div style={{
-                width: '56px',
-                height: '56px',
+                width: '64px',
+                height: '64px',
                 borderRadius: '50%',
-                backgroundColor: 'var(--card)',
+                backgroundColor: 'var(--acc2)',
                 color: 'var(--acc)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                margin: '0 auto 18px',
-                boxShadow: 'var(--shadow-sm)',
+                margin: '0 auto 20px',
+                border: '1px solid rgba(244, 155, 172, 0.3)',
+                boxShadow: '0 4px 20px rgba(244, 155, 172, 0.2)',
               }}>
-                <Upload size={24} />
+                <Camera size={28} />
               </div>
-              <h3 style={{ marginBottom: '8px', fontSize: '1.25rem' }}>Drop your outfit photo here</h3>
-              <p className="mute" style={{ fontSize: '0.9rem', marginBottom: '16px' }}>
-                or click to browse from device · JPG, PNG, WEBP (up to 10 MB)
+              <h3 style={{ marginBottom: '8px', fontSize: '1.3rem' }}>Drop your fit photo here</h3>
+              <p className="mute" style={{ fontSize: '0.92rem', marginBottom: '20px' }}>
+                or click to browse from your device · JPG, PNG, WEBP (up to 10 MB)
               </p>
-              <span className="btn sm">Browse Photo</span>
+              <span className="btn primary sm" style={{ padding: '8px 24px' }}>
+                <Upload size={15} /> Select Photo
+              </span>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -210,6 +233,7 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
                 overflow: 'hidden',
                 backgroundColor: 'var(--card-subtle)',
                 boxShadow: 'var(--shadow-md)',
+                border: '1px solid var(--line-strong)',
               }}>
                 <img
                   src={previewUrl}
@@ -234,8 +258,8 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
                 <button
                   type="button"
                   onClick={handleClear}
-                  className="btn sm"
-                  style={{ color: 'var(--acc)' }}
+                  className="btn sm outline"
+                  style={{ color: 'var(--acc)', borderColor: 'var(--line)' }}
                 >
                   <X size={14} /> Remove
                 </button>
@@ -257,9 +281,10 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
               gap: '10px',
               padding: '12px 16px',
               borderRadius: 'var(--radius-sm)',
-              backgroundColor: '#fee2e2',
-              color: '#991b1b',
-              marginTop: '16px',
+              backgroundColor: 'rgba(239, 68, 68, 0.15)',
+              border: '1px solid rgba(239, 68, 68, 0.3)',
+              color: '#fca5a5',
+              marginTop: '18px',
               fontSize: '0.9rem',
             }}>
               <AlertCircle size={18} style={{ flexShrink: 0 }} />
@@ -268,76 +293,61 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
           )}
         </div>
 
-        {/* Styling Preferences & Submission */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Styling Preferences & Submission Card */}
+        <div className="card" style={{
+          background: 'var(--card-subtle)',
+          border: '1px solid var(--line)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+        }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '8px', color: 'var(--ink)' }}>
               Where are you heading? (Occasion)
             </label>
             <select
               value={occasion}
               onChange={(e) => setOccasion(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                color: 'var(--ink)',
-                fontSize: '0.95rem',
-                fontFamily: 'inherit',
-              }}
+              className="form-select"
             >
               {OCCASIONS.map((occ) => (
-                <option key={occ} value={occ}>{occ}</option>
+                <option key={occ} value={occ}>
+                  {occ}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>
-              Preferred Aesthetic (Target Style)
+            <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '8px', color: 'var(--ink)' }}>
+              Target Aesthetic
             </label>
             <select
               value={targetStyle}
               onChange={(e) => setTargetStyle(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                color: 'var(--ink)',
-                fontSize: '0.95rem',
-                fontFamily: 'inherit',
-              }}
+              className="form-select"
             >
               {STYLES.map((st) => (
-                <option key={st} value={st}>{st}</option>
+                <option key={st} value={st}>
+                  {st}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 600, marginBottom: '6px' }}>
-              Feedback Tone
+            <label style={{ display: 'block', fontSize: '0.88rem', fontWeight: 600, marginBottom: '8px', color: 'var(--ink)' }}>
+              Stylist Feedback Tone
             </label>
             <select
               value={feedbackTone}
               onChange={(e) => setFeedbackTone(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card)',
-                color: 'var(--ink)',
-                fontSize: '0.95rem',
-                fontFamily: 'inherit',
-              }}
+              className="form-select"
             >
               {TONES.map((t) => (
-                <option key={t} value={t}>{t}</option>
+                <option key={t} value={t}>
+                  {t}
+                </option>
               ))}
             </select>
           </div>
@@ -346,26 +356,32 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
             padding: '14px',
             borderRadius: 'var(--radius-sm)',
             backgroundColor: 'var(--card-subtle)',
-            fontSize: '0.85rem',
+            border: '1px solid var(--line)',
+            fontSize: '0.84rem',
             color: 'var(--mute)',
             display: 'flex',
             alignItems: 'flex-start',
-            gap: '8px',
+            gap: '10px',
           }}>
             <Shield size={16} style={{ color: 'var(--ok)', flexShrink: 0, marginTop: '2px' }} />
             <span>
-              <strong>Private by default:</strong> Your photo is analyzed strictly for clothing coordination. 
-              Photos are never shared publicly without your explicit consent.
+              <strong>Private by default:</strong> Your image is analyzed strictly for garment color and styling harmony. 
+              Photos are never shared publicly without your explicit choice.
             </span>
           </div>
 
           {/* Processing Stages */}
           {isProcessing ? (
-            <div style={{ padding: '16px 0' }}>
+            <div style={{
+              padding: '20px',
+              backgroundColor: 'rgba(244, 155, 172, 0.06)',
+              borderRadius: 'var(--radius-sm)',
+              border: '1px solid rgba(244, 155, 172, 0.2)',
+            }}>
               <div style={{
                 height: '6px',
                 width: '100%',
-                backgroundColor: 'var(--line)',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
                 borderRadius: '999px',
                 overflow: 'hidden',
                 marginBottom: '16px',
@@ -375,25 +391,26 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
                   width: `${(activeStep / (steps.length - 1)) * 100}%`,
                   backgroundColor: 'var(--acc)',
                   transition: 'width 0.4s ease',
+                  boxShadow: '0 0 12px var(--acc)',
                 }} />
               </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 {steps.map((st, i) => (
                   <div
                     key={i}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '8px',
+                      gap: '10px',
                       fontSize: '0.88rem',
                       color: i <= activeStep ? 'var(--ink)' : 'var(--mute)',
                       fontWeight: i === activeStep ? 600 : 400,
                     }}
                   >
                     {i < activeStep ? (
-                      <Check size={14} style={{ color: 'var(--ok)' }} />
+                      <Check size={15} style={{ color: 'var(--ok)' }} />
                     ) : i === activeStep ? (
-                      <RefreshCw size={14} className="spin" style={{ color: 'var(--acc)' }} />
+                      <RefreshCw size={15} className="spin" style={{ color: 'var(--acc)' }} />
                     ) : (
                       <span style={{ width: '14px', height: '14px', borderRadius: '50%', border: '1px solid var(--mute)' }} />
                     )}
@@ -406,11 +423,18 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
             <button
               onClick={handleAnalyze}
               disabled={!file}
-              className="btn primary"
-              style={{ width: '100%', padding: '14px 20px', fontSize: '1rem', marginTop: '10px' }}
+              className="btn primary lg"
+              style={{
+                width: '100%',
+                padding: '14px 20px',
+                fontSize: '1rem',
+                marginTop: '10px',
+                borderRadius: 'var(--radius-full)',
+              }}
             >
-              Analyze My Fit
-              <ArrowRight size={18} />
+              <Sparkles size={17} />
+              <span>Score & Analyze My Fit</span>
+              <ArrowRight size={17} />
             </button>
           )}
         </div>

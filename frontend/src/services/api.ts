@@ -199,6 +199,11 @@ export const api = {
     return `${API_BASE}/api/v1/me/export`;
   },
 
+  async exportUserData(): Promise<any> {
+    const res = await fetch(`${API_BASE}/api/v1/me/export`, { method: 'POST' });
+    return handleResponse(res);
+  },
+
   async wipeUserData(): Promise<void> {
     const res = await fetch(`${API_BASE}/api/v1/me`, {
       method: 'DELETE',

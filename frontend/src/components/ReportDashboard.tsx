@@ -10,7 +10,8 @@ import {
   GitCompare,
   PlusCircle,
   Palette,
-  Info
+  Info,
+  Check
 } from 'lucide-react';
 import type { FitReport } from '../types';
 import { api } from '../services/api';
@@ -30,15 +31,15 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
 }) => {
   const [isSaved, setIsSaved] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [copiedHex, setCopiedHex] = useState<string | null>(null);
 
   const handleSaveToVault = async () => {
     try {
-      // Confetti celebration
       confetti({
-        particleCount: 60,
-        spread: 70,
+        particleCount: 65,
+        spread: 75,
         origin: { y: 0.7 },
-        colors: ['#6d1f2f', '#efe4de', '#3f5b45', '#b58c42'],
+        colors: ['#f49bac', '#86efac', '#c084fc', '#fbbf24'],
       });
       setIsSaved(true);
       setSaveMessage('Saved to your private wardrobe vault!');
@@ -48,40 +49,64 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
     }
   };
 
+  const copyHex = (hex: string) => {
+    navigator.clipboard.writeText(hex);
+    setCopiedHex(hex);
+    setTimeout(() => setCopiedHex(null), 2000);
+  };
+
   const getScoreStatus = (score: number | null) => {
     if (!score) return 'Uncalibrated';
     if (score >= 88) return 'Flawlessly Coordinated';
     if (score >= 80) return 'Effortlessly Balanced';
     if (score >= 72) return 'Cohesive & Contemporary';
-    return 'Room for Creative Styling';
+    return 'Creative Experimentation';
   };
 
   const pillars = [
-    { key: 'color_coordination', label: 'Color Harmony' },
-    { key: 'styling', label: 'Styling & Detailing' },
-    { key: 'fit_proportion', label: 'Proportion & Drape' },
-    { key: 'occasion_match', label: 'Occasion Alignment' },
+    { key: 'color_coordination', label: 'Color Match & Harmony', color: 'var(--ok)' },
+    { key: 'styling', label: 'Styling & Detailing', color: 'var(--gold)' },
+    { key: 'fit_proportion', label: 'Silhouette & Proportions', color: 'var(--acc)' },
+    { key: 'occasion_match', label: 'Occasion Alignment', color: 'var(--purple)' },
   ];
 
   return (
-    <div style={{ maxWidth: '1060px', margin: '0 auto', padding: '40px 0 90px' }}>
-      {/* Top Banner Disclaimer */}
+    <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '36px 0 90px' }}>
+      <style>{`
+        @media (max-width: 900px) {
+          .report-grid {
+            grid-template-columns: 1fr !important;
+            gap: 28px !important;
+          }
+          .report-image-col {
+            position: static !important;
+          }
+          .action-buttons-wrap {
+            flex-direction: column !important;
+          }
+          .action-buttons-wrap .btn {
+            width: 100% !important;
+          }
+        }
+      `}</style>
+
+      {/* Top Disclaimer Badge */}
       <div style={{
         display: 'flex',
         alignItems: 'center',
-        gap: '10px',
+        gap: '12px',
         padding: '12px 18px',
         borderRadius: 'var(--radius-sm)',
-        backgroundColor: 'var(--card-subtle)',
+        backgroundColor: 'rgba(255, 255, 255, 0.03)',
         border: '1px solid var(--line)',
-        marginBottom: '32px',
-        fontSize: '0.86rem',
+        marginBottom: '28px',
+        fontSize: '0.85rem',
         color: 'var(--mute)',
       }}>
         <Info size={16} style={{ color: 'var(--acc)', flexShrink: 0 }} />
         <span>
-          <strong>Styling Guidance:</strong> FitCheck evaluates visible garments and color relationships. 
-          Fashion is subjective, and scores represent editorial styling guidance—never judgments of attractiveness.
+          <strong>Styling Guidance:</strong> FitCheck evaluates color balance, drape, and occasion fit.
+          Fashion is personal and subjective—all scores reflect objective styling harmony rather than personal judgment.
         </span>
       </div>
 
@@ -90,71 +115,93 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
         gridTemplateColumns: report.image_url ? '4fr 7fr' : '1fr',
         gap: '36px',
         alignItems: 'start',
-      }}>
-        {/* Left Column: Outfit Image & Palette */}
+      }} className="report-grid">
+        {/* Left Column: Image Card & Extracted Palette */}
         {report.image_url && (
-          <div style={{ position: 'sticky', top: '96px' }}>
-            <div className="card" style={{ padding: '12px', overflow: 'hidden' }}>
-              <img
-                src={api.resolveImageUrl(report.image_url)}
-                alt={report.style_title}
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                }}
-                style={{
-                  width: '100%',
-                  borderRadius: 'var(--radius-sm)',
-                  maxHeight: '480px',
-                  objectFit: 'cover',
-                  display: 'block',
-                  backgroundColor: 'var(--card-subtle)',
-                }}
-              />
+          <div className="report-image-col" style={{ position: 'sticky', top: '96px' }}>
+            <div className="card" style={{
+              padding: '14px',
+              backgroundColor: 'var(--card-subtle)',
+              border: '1px solid var(--line-strong)',
+              boxShadow: '0 12px 35px rgba(0, 0, 0, 0.5)',
+            }}>
+              <div style={{
+                position: 'relative',
+                borderRadius: 'var(--radius-sm)',
+                overflow: 'hidden',
+                backgroundColor: 'var(--card-subtle)',
+              }}>
+                <img
+                  src={api.resolveImageUrl(report.image_url)}
+                  alt={report.style_title}
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  style={{
+                    width: '100%',
+                    maxHeight: '480px',
+                    objectFit: 'contain',
+                    display: 'block',
+                    margin: '0 auto',
+                  }}
+                />
+              </div>
 
-              {/* Extracted Color Palette Chips */}
+              {/* Extracted Color Palette */}
               {report.extracted_palette && report.extracted_palette.length > 0 && (
                 <div style={{ marginTop: '16px', padding: '0 4px 6px' }}>
                   <div style={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '6px',
-                    fontSize: '0.8rem',
+                    justifyContent: 'space-between',
+                    fontSize: '0.78rem',
                     color: 'var(--mute)',
                     marginBottom: '10px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.04em',
+                    letterSpacing: '0.05em',
                   }}>
-                    <Palette size={14} />
-                    Extracted Palette
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Palette size={14} style={{ color: 'var(--acc)' }} />
+                      Extracted Palette
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--mute)' }}>Tap HEX to copy</span>
                   </div>
+
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {report.extracted_palette.map((c, i) => (
-                      <div
+                      <button
                         key={i}
-                        title={`${c.name} (${c.hex})`}
+                        onClick={() => copyHex(c.hex)}
+                        title={`Click to copy ${c.hex}`}
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           gap: '6px',
-                          padding: '4px 8px',
+                          padding: '5px 10px',
                           borderRadius: '999px',
-                          backgroundColor: 'var(--bg)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
                           border: '1px solid var(--line)',
+                          color: 'var(--ink)',
                           fontSize: '0.75rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s ease',
                         }}
                       >
                         <span
                           style={{
-                            width: '14px',
-                            height: '14px',
+                            width: '13px',
+                            height: '13px',
                             borderRadius: '50%',
                             backgroundColor: c.hex,
-                            border: '1px solid rgba(0,0,0,0.1)',
+                            border: '1px solid rgba(255,255,255,0.2)',
                           }}
                         />
-                        <span style={{ fontWeight: 500 }}>{c.name}</span>
-                      </div>
+                        <span style={{ fontWeight: 600 }}>{c.name}</span>
+                        <span style={{ color: 'var(--mute)', fontSize: '0.7rem' }}>
+                          {copiedHex === c.hex ? '✓ Copied' : c.hex}
+                        </span>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -163,91 +210,113 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           </div>
         )}
 
-        {/* Right Column: Detailed Breakdown */}
+        {/* Right Column: Detailed Score & Insights */}
         <div>
-          <div style={{ marginBottom: '24px' }}>
-            <span className="badge" style={{ marginBottom: '8px' }}>
+          {/* Style Title & Summary */}
+          <div style={{ marginBottom: '26px' }}>
+            <span className="badge" style={{ marginBottom: '10px' }}>
               <Sparkles size={12} /> Editorial Verdict
             </span>
-            <h1 style={{ fontSize: '2.5rem', marginBottom: '8px' }}>{report.style_title}</h1>
-            <p className="mute" style={{ fontSize: '1.05rem', margin: 0 }}>
+            <h1 style={{ fontSize: '2.5rem', marginBottom: '8px', letterSpacing: '-0.02em' }}>
+              {report.style_title}
+            </h1>
+            <p className="lead" style={{ fontSize: '1.05rem', margin: 0, color: 'var(--mute)' }}>
               {report.style_description}
             </p>
           </div>
 
-          {/* Primary FitScore Card */}
+          {/* Primary FitScore Card (matching Image 1 & 2) */}
           <div className="card" style={{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            gap: '20px',
             marginBottom: '28px',
             background: 'linear-gradient(135deg, var(--card) 0%, var(--card-subtle) 100%)',
             border: '1px solid var(--line-strong)',
+            boxShadow: 'var(--shadow-sm)',
           }}>
             <div>
               <span style={{
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 textTransform: 'uppercase',
-                letterSpacing: '0.06em',
+                letterSpacing: '0.08em',
                 color: 'var(--mute)',
-                fontWeight: 600,
+                fontWeight: 700,
               }}>
-                Overall FitScore
+                Overall AI FitScore
               </span>
               <div style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: '4.2rem',
                 lineHeight: 1,
                 color: 'var(--acc)',
-                margin: '4px 0',
+                margin: '6px 0',
+                display: 'flex',
+                alignItems: 'baseline',
+                gap: '8px',
               }}>
-                {report.overall_score !== null ? report.overall_score : '—'}
-                <span style={{ fontSize: '1.4rem', color: 'var(--mute)' }}> / 100</span>
+                <span>{report.overall_score !== null ? report.overall_score : '—'}</span>
+                <span style={{ fontSize: '1.4rem', color: 'var(--mute)', fontFamily: 'var(--font-sans)' }}>
+                  / 100
+                </span>
               </div>
-              <span className="badge sage">
+              <span className="badge green" style={{ fontWeight: 700 }}>
                 {getScoreStatus(report.overall_score)}
               </span>
             </div>
 
-            <div style={{ textAlign: 'right', maxWidth: '240px' }}>
-              <span style={{ fontSize: '0.82rem', color: 'var(--mute)', display: 'block', marginBottom: '4px' }}>
+            <div style={{ textAlign: 'right', minWidth: '180px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--mute)', display: 'block', marginBottom: '4px' }}>
                 Confidence Level
               </span>
-              <span style={{ fontWeight: 600, textTransform: 'capitalize' }}>
+              <span style={{ fontWeight: 700, textTransform: 'capitalize', color: 'var(--ink)' }}>
                 {report.overall_confidence}
               </span>
-              <p className="mute" style={{ fontSize: '0.8rem', marginTop: '6px' }}>
+              <p className="mute" style={{ fontSize: '0.78rem', marginTop: '6px' }}>
                 Rubric v{report.rubric_version}
               </p>
-              <span className="badge" style={{ marginTop: '4px', fontSize: '0.72rem' }}>
+              <span className="badge" style={{ marginTop: '6px', fontSize: '0.72rem' }}>
                 {report.model_id.includes('gemini') ? '✨ Gemini 2.5 Flash' : 'CV Heuristics'}
               </span>
             </div>
           </div>
 
-          {/* 4 Pillars Grid */}
+          {/* 4 Pillars Grid (matching breakdown from Image 1) */}
           <div style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))',
             gap: '16px',
-            marginBottom: '32px',
+            marginBottom: '30px',
           }}>
-            {pillars.map(({ key, label }) => {
+            {pillars.map(({ key, label, color }) => {
               const detail = report.scores[key];
               const scoreVal = detail?.score;
               return (
-                <div key={key} className="card" style={{ padding: '18px 16px' }}>
-                  <span style={{ fontSize: '0.8rem', color: 'var(--mute)', fontWeight: 600 }}>
-                    {label}
-                  </span>
+                <div key={key} className="card" style={{
+                  padding: '18px 16px',
+                  background: 'var(--card-subtle)',
+                  border: '1px solid var(--line)',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--mute)', fontWeight: 600 }}>
+                      {label}
+                    </span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 700, color }}>
+                      {scoreVal !== null && scoreVal !== undefined ? `${scoreVal}/100` : '—'}
+                    </span>
+                  </div>
+
                   <div style={{
                     fontFamily: 'var(--font-serif)',
-                    fontSize: '2rem',
+                    fontSize: '1.9rem',
                     margin: '6px 0',
                     color: scoreVal ? 'var(--ink)' : 'var(--mute)',
                   }}>
                     {scoreVal !== null && scoreVal !== undefined ? scoreVal : '—'}
                   </div>
+
                   {/* Progress Bar */}
                   <div style={{
                     height: '5px',
@@ -260,10 +329,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
                     <div style={{
                       height: '100%',
                       width: `${scoreVal || 0}%`,
-                      backgroundColor: 'var(--acc)',
+                      backgroundColor: color,
+                      transition: 'width 0.4s ease',
                     }} />
                   </div>
-                  <p className="mute" style={{ fontSize: '0.8rem', margin: 0, lineHeight: 1.4 }}>
+                  <p className="mute" style={{ fontSize: '0.78rem', margin: 0, lineHeight: 1.4 }}>
                     {detail?.rationale || 'Observation recorded.'}
                   </p>
                 </div>
@@ -271,9 +341,13 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
             })}
           </div>
 
-          {/* What Works Well */}
-          <div className="card" style={{ marginBottom: '20px' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          {/* What Works Well Card */}
+          <div className="card" style={{
+            marginBottom: '20px',
+            background: 'var(--card-subtle)',
+            border: '1px solid var(--line)',
+          }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '1.25rem' }}>
               <CheckCircle2 size={18} style={{ color: 'var(--ok)' }} />
               What's Working Well
             </h3>
@@ -288,8 +362,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           </div>
 
           {/* Refinement Opportunities */}
-          <div className="card" style={{ marginBottom: '20px' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          <div className="card" style={{
+            marginBottom: '20px',
+            background: 'var(--card-subtle)',
+            border: '1px solid var(--line)',
+          }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '1.25rem' }}>
               <ArrowUpRight size={18} style={{ color: 'var(--acc)' }} />
               Refinement Opportunities
             </h3>
@@ -304,8 +382,12 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           </div>
 
           {/* Styling Upgrades & Variations */}
-          <div className="card" style={{ marginBottom: '32px' }}>
-            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+          <div className="card" style={{
+            marginBottom: '32px',
+            background: 'var(--card-subtle)',
+            border: '1px solid var(--line)',
+          }}>
+            <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px', fontSize: '1.25rem' }}>
               <Sparkles size={18} style={{ color: 'var(--gold)' }} />
               Styling Upgrades & Variations
             </h3>
@@ -319,13 +401,13 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
             </ul>
           </div>
 
-          {/* Actions Toolbar */}
-          <div style={{
+          {/* Action Toolbar */}
+          <div className="action-buttons-wrap" style={{
             display: 'flex',
             flexWrap: 'wrap',
             gap: '12px',
             alignItems: 'center',
-            paddingTop: '16px',
+            paddingTop: '20px',
             borderTop: '1px solid var(--line)',
           }}>
             <button
@@ -334,21 +416,21 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
               className="btn primary"
             >
               <Bookmark size={16} />
-              {isSaved ? 'Saved in My Fits' : 'Save to My Fits'}
+              {isSaved ? 'Saved in My Looks' : 'Save to My Looks'}
             </button>
 
             <button
               onClick={() => onOpenShareModal(report)}
-              className="btn"
+              className="btn outline"
             >
               <Share2 size={16} />
-              Share Card
+              Magazine Card
             </button>
 
             <a
               href={api.getExportUrl(report.id)}
               download={`fitcheck-report-${report.id.slice(0, 8)}.txt`}
-              className="btn"
+              className="btn outline"
             >
               <Download size={16} />
               Download Report
@@ -356,7 +438,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
 
             <button
               onClick={() => onOpenCompare(report.id)}
-              className="btn"
+              className="btn outline"
             >
               <GitCompare size={16} />
               Compare Fits
@@ -364,7 +446,7 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
 
             <button
               onClick={onAnalyzeAnother}
-              className="btn"
+              className="btn outline"
             >
               <PlusCircle size={16} />
               Analyze Another
@@ -378,10 +460,15 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
               borderRadius: 'var(--radius-sm)',
               backgroundColor: 'var(--ok-bg)',
               color: 'var(--ok)',
+              border: '1px solid var(--ok-border)',
               fontSize: '0.9rem',
-              fontWeight: 500,
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
             }}>
-              {saveMessage}
+              <Check size={16} />
+              <span>{saveMessage}</span>
             </div>
           )}
         </div>

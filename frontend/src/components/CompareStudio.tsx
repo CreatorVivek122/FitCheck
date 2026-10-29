@@ -50,49 +50,57 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '1060px', margin: '0 auto', padding: '40px 0 90px' }}>
+    <div style={{ maxWidth: '1080px', margin: '0 auto', padding: '36px 0 90px' }}>
+      <style>{`
+        @media (max-width: 768px) {
+          .compare-cards-grid {
+            grid-template-columns: 1fr !important;
+            gap: 24px !important;
+          }
+          .compare-inputs-grid {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
       <button
         onClick={onBackToFits}
-        className="btn sm"
-        style={{ marginBottom: '24px' }}
+        className="btn sm outline"
+        style={{ marginBottom: '24px', gap: '6px' }}
       >
-        <ArrowLeft size={15} /> Back to Wardrobe Vault
+        <ArrowLeft size={15} /> Back to My Looks
       </button>
 
       <div style={{ textAlign: 'center', marginBottom: '36px' }}>
         <span className="badge" style={{ marginBottom: '10px' }}>
           <GitCompare size={13} /> Head-to-Head Comparison
         </span>
-        <h2>Compare Two Looks</h2>
-        <p className="mute">
+        <h2 style={{ fontSize: '2.4rem' }}>Compare Two Looks</h2>
+        <p className="lead" style={{ margin: '0 auto', fontSize: '1rem' }}>
           Evaluate color harmony, proportions, and occasion suitability between two outfits.
         </p>
       </div>
 
-      {/* Selectors */}
-      <div className="card" style={{ marginBottom: '32px' }}>
+      {/* Selectors Card */}
+      <div className="card" style={{
+        marginBottom: '32px',
+        background: 'var(--card-subtle)',
+        border: '1px solid var(--line)',
+      }}>
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
           gap: '16px',
           alignItems: 'center',
-        }}>
+        }} className="compare-inputs-grid">
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
               Outfit A
             </label>
             <select
               value={selectedA}
               onChange={(e) => setSelectedA(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card-subtle)',
-                color: 'var(--ink)',
-                fontSize: '0.9rem',
-              }}
+              className="form-select"
             >
               {reports.map((r) => (
                 <option key={r.id} value={r.id} disabled={r.id === selectedB}>
@@ -103,21 +111,13 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
               Outfit B
             </label>
             <select
               value={selectedB}
               onChange={(e) => setSelectedB(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card-subtle)',
-                color: 'var(--ink)',
-                fontSize: '0.9rem',
-              }}
+              className="form-select"
             >
               {reports.map((r) => (
                 <option key={r.id} value={r.id} disabled={r.id === selectedA}>
@@ -128,7 +128,7 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px' }}>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '6px', color: 'var(--ink)' }}>
               Target Occasion
             </label>
             <input
@@ -136,15 +136,7 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
               value={targetOccasion}
               onChange={(e) => setTargetOccasion(e.target.value)}
               placeholder="e.g. Office, Date Night..."
-              style={{
-                width: '100%',
-                padding: '10px 14px',
-                borderRadius: 'var(--radius-sm)',
-                border: '1px solid var(--line)',
-                backgroundColor: 'var(--card-subtle)',
-                color: 'var(--ink)',
-                fontSize: '0.9rem',
-              }}
+              className="form-input"
             />
           </div>
         </div>
@@ -155,11 +147,12 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
           display: 'flex',
           alignItems: 'center',
           gap: '10px',
-          padding: '12px 16px',
+          padding: '14px 18px',
           borderRadius: 'var(--radius-sm)',
-          backgroundColor: '#fee2e2',
-          color: '#991b1b',
-          marginBottom: '20px',
+          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#fca5a5',
+          marginBottom: '24px',
         }}>
           <AlertCircle size={18} />
           <span>{error}</span>
@@ -168,7 +161,8 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
 
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--mute)' }}>
-          Computing comparative breakdown...
+          <Sparkles size={24} className="spin" style={{ color: 'var(--acc)', marginBottom: '10px' }} />
+          <div>Computing comparative score deltas...</div>
         </div>
       ) : result ? (
         <div>
@@ -178,11 +172,17 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
             gridTemplateColumns: '1fr 1fr',
             gap: '24px',
             marginBottom: '32px',
-          }}>
+          }} className="compare-cards-grid">
             {/* Fit A */}
             <div className="card" style={{
-              border: result.winning_report_id === result.report_a.id ? '2px solid var(--acc)' : '1px solid var(--line)',
+              border: result.winning_report_id === result.report_a.id
+                ? '2px solid var(--acc)'
+                : '1px solid var(--line)',
+              background: 'var(--card-subtle)',
               position: 'relative',
+              boxShadow: result.winning_report_id === result.report_a.id
+                ? '0 0 30px rgba(244, 155, 172, 0.25)'
+                : 'var(--shadow-sm)',
             }}>
               {result.winning_report_id === result.report_a.id && (
                 <span className="badge" style={{ position: 'absolute', top: '16px', right: '16px' }}>
@@ -190,20 +190,26 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
                 </span>
               )}
               {result.report_a.image_url && (
-                <img
-                  src={api.resolveImageUrl(result.report_a.image_url)}
-                  alt={result.report_a.style_title}
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  style={{
-                    width: '100%',
-                    aspectRatio: '3/4',
-                    objectFit: 'cover',
-                    borderRadius: 'var(--radius-sm)',
-                    marginBottom: '16px',
-                  }}
-                />
+                <div style={{
+                  borderRadius: 'var(--radius-sm)',
+                  overflow: 'hidden',
+                  backgroundColor: 'var(--card-subtle)',
+                  marginBottom: '16px',
+                }}>
+                  <img
+                    src={api.resolveImageUrl(result.report_a.image_url)}
+                    alt={result.report_a.style_title}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    style={{
+                      width: '100%',
+                      aspectRatio: '3/4',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                  />
+                </div>
               )}
-              <h3 style={{ marginBottom: '4px' }}>Fit A: {result.report_a.style_title}</h3>
+              <h3 style={{ marginBottom: '4px', fontSize: '1.25rem' }}>Fit A: {result.report_a.style_title}</h3>
               <div style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: '2.5rem',
@@ -211,15 +217,21 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
                 marginBottom: '10px',
               }}>
                 {result.report_a.overall_score || '—'}
-                <span style={{ fontSize: '1rem', color: 'var(--mute)' }}> / 100</span>
+                <span style={{ fontSize: '1rem', color: 'var(--mute)', fontFamily: 'var(--font-sans)' }}> / 100</span>
               </div>
               <p className="mute" style={{ fontSize: '0.88rem' }}>{result.report_a.style_description}</p>
             </div>
 
             {/* Fit B */}
             <div className="card" style={{
-              border: result.winning_report_id === result.report_b.id ? '2px solid var(--acc)' : '1px solid var(--line)',
+              border: result.winning_report_id === result.report_b.id
+                ? '2px solid var(--acc)'
+                : '1px solid var(--line)',
+              background: 'var(--card-subtle)',
               position: 'relative',
+              boxShadow: result.winning_report_id === result.report_b.id
+                ? '0 0 30px rgba(244, 155, 172, 0.25)'
+                : 'var(--shadow-sm)',
             }}>
               {result.winning_report_id === result.report_b.id && (
                 <span className="badge" style={{ position: 'absolute', top: '16px', right: '16px' }}>
@@ -227,20 +239,26 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
                 </span>
               )}
               {result.report_b.image_url && (
-                <img
-                  src={api.resolveImageUrl(result.report_b.image_url)}
-                  alt={result.report_b.style_title}
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  style={{
-                    width: '100%',
-                    aspectRatio: '3/4',
-                    objectFit: 'cover',
-                    borderRadius: 'var(--radius-sm)',
-                    marginBottom: '16px',
-                  }}
-                />
+                <div style={{
+                  borderRadius: 'var(--radius-sm)',
+                  overflow: 'hidden',
+                  backgroundColor: 'var(--card-subtle)',
+                  marginBottom: '16px',
+                }}>
+                  <img
+                    src={api.resolveImageUrl(result.report_b.image_url)}
+                    alt={result.report_b.style_title}
+                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    style={{
+                      width: '100%',
+                      aspectRatio: '3/4',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                  />
+                </div>
               )}
-              <h3 style={{ marginBottom: '4px' }}>Fit B: {result.report_b.style_title}</h3>
+              <h3 style={{ marginBottom: '4px', fontSize: '1.25rem' }}>Fit B: {result.report_b.style_title}</h3>
               <div style={{
                 fontFamily: 'var(--font-serif)',
                 fontSize: '2.5rem',
@@ -248,7 +266,7 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
                 marginBottom: '10px',
               }}>
                 {result.report_b.overall_score || '—'}
-                <span style={{ fontSize: '1rem', color: 'var(--mute)' }}> / 100</span>
+                <span style={{ fontSize: '1rem', color: 'var(--mute)', fontFamily: 'var(--font-sans)' }}> / 100</span>
               </div>
               <p className="mute" style={{ fontSize: '0.88rem' }}>{result.report_b.style_description}</p>
             </div>
@@ -258,22 +276,22 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
           <div className="card" style={{
             marginBottom: '28px',
             backgroundColor: 'var(--card-subtle)',
-            border: '1px solid var(--line-strong)',
+            border: '1px solid rgba(244, 155, 172, 0.3)',
           }}>
             <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
               <Sparkles size={18} style={{ color: 'var(--gold)' }} />
               Comparative Verdict
             </h3>
-            <p style={{ fontSize: '1.05rem', fontWeight: 500, marginBottom: '12px' }}>
+            <p style={{ fontSize: '1.05rem', fontWeight: 600, color: 'var(--ink)', marginBottom: '10px' }}>
               {result.verdict}
             </p>
             <p className="mute" style={{ margin: 0, fontSize: '0.92rem' }}>
-              <strong>Occasion Advice:</strong> {result.occasion_advice}
+              <strong style={{ color: 'var(--acc)' }}>Occasion Advice:</strong> {result.occasion_advice}
             </p>
           </div>
 
           {/* Pillar Comparisons Table */}
-          <div className="card">
+          <div className="card" style={{ background: 'var(--card-subtle)', border: '1px solid var(--line)' }}>
             <h3 style={{ marginBottom: '16px' }}>Pillar-by-Pillar Breakdown</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {Object.entries(result.pillar_comparisons).map(([pillarName, comparisonText]) => (
@@ -285,12 +303,12 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
                     alignItems: 'center',
                     padding: '12px 16px',
                     borderRadius: 'var(--radius-sm)',
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'var(--card-subtle)',
                     border: '1px solid var(--line)',
                   }}
                 >
                   <span style={{ fontWeight: 600, fontSize: '0.92rem' }}>{pillarName}</span>
-                  <span className="badge sage" style={{ fontSize: '0.8rem' }}>
+                  <span className="badge green" style={{ fontSize: '0.8rem' }}>
                     {comparisonText}
                   </span>
                 </div>
@@ -299,7 +317,7 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
           </div>
         </div>
       ) : (
-        <div className="card" style={{ textAlign: 'center', padding: '48px 20px' }}>
+        <div className="card" style={{ textAlign: 'center', padding: '48px 20px', background: 'var(--card-subtle)' }}>
           Select two distinct outfits from your wardrobe to begin comparison.
         </div>
       )}

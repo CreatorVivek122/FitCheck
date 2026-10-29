@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, GitCompare, PlusCircle, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
+import { Search, Trash2, GitCompare, PlusCircle, Sparkles, AlertCircle, RefreshCw, Layers } from 'lucide-react';
 import type { FitReport } from '../types';
 import { api } from '../services/api';
 
@@ -80,11 +80,24 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
   };
 
   return (
-    <div style={{ maxWidth: '1060px', margin: '0 auto', padding: '40px 0 90px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
+    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '36px 0 90px' }}>
+      {/* Top Header */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-end',
+        marginBottom: '32px',
+        flexWrap: 'wrap',
+        gap: '16px',
+      }}>
         <div>
-          <h2>My Wardrobe Vault</h2>
-          <p className="mute">Your private library of evaluated outfits, styling notes, and scores.</p>
+          <span className="badge" style={{ marginBottom: '8px' }}>
+            <Layers size={13} /> Private Wardrobe Archive
+          </span>
+          <h2 style={{ fontSize: '2.4rem' }}>My Looks & Fits</h2>
+          <p className="lead" style={{ fontSize: '0.96rem', margin: 0 }}>
+            Your personal archive of evaluated outfits, styling notes, and scores.
+          </p>
         </div>
         <button onClick={onGoToStudio} className="btn primary">
           <PlusCircle size={16} />
@@ -100,21 +113,22 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
         flexWrap: 'wrap',
       }}>
         <div style={{ position: 'relative', flex: '1 1 240px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: 'var(--mute)' }} />
+          <Search size={16} style={{
+            position: 'absolute',
+            left: '14px',
+            top: '50%',
+            transform: 'translateY(-50%)',
+            color: 'var(--mute)',
+          }} />
           <input
             type="search"
-            placeholder="Search notes, style title, aesthetic..."
+            placeholder="Search fits by aesthetic, notes, occasion..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
+            className="form-input"
             style={{
-              width: '100%',
-              padding: '10px 14px 10px 38px',
+              paddingLeft: '40px',
               borderRadius: 'var(--radius-full)',
-              border: '1px solid var(--line)',
-              backgroundColor: 'var(--card)',
-              color: 'var(--ink)',
-              fontSize: '0.92rem',
-              fontFamily: 'inherit',
             }}
           />
         </div>
@@ -122,15 +136,8 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
         <select
           value={occasionFilter}
           onChange={(e) => setOccasionFilter(e.target.value)}
-          style={{
-            padding: '10px 16px',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            color: 'var(--ink)',
-            fontSize: '0.92rem',
-            fontFamily: 'inherit',
-          }}
+          className="form-select"
+          style={{ width: 'auto', minWidth: '160px', borderRadius: 'var(--radius-full)' }}
         >
           <option value="">All Occasions</option>
           <option value="Everyday / Casual">Casual</option>
@@ -145,15 +152,8 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as any)}
-          style={{
-            padding: '10px 16px',
-            borderRadius: 'var(--radius-full)',
-            border: '1px solid var(--line)',
-            backgroundColor: 'var(--card)',
-            color: 'var(--ink)',
-            fontSize: '0.92rem',
-            fontFamily: 'inherit',
-          }}
+          className="form-select"
+          style={{ width: 'auto', minWidth: '180px', borderRadius: 'var(--radius-full)' }}
         >
           <option value="newest">Sort: Newest First</option>
           <option value="score_desc">Sort: Highest FitScore</option>
@@ -166,26 +166,32 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
         <div style={{
           position: 'sticky',
           top: '84px',
-          zIndex: 30,
-          marginBottom: '24px',
-          padding: '14px 20px',
+          zIndex: 35,
+          marginBottom: '28px',
+          padding: '16px 24px',
           borderRadius: 'var(--radius-md)',
-          backgroundColor: 'var(--acc)',
-          color: '#ffffff',
-          boxShadow: 'var(--shadow-md)',
+          background: 'linear-gradient(135deg, rgba(244, 155, 172, 0.95) 0%, rgba(220, 120, 145, 0.95) 100%)',
+          color: '#120e14',
+          boxShadow: '0 12px 35px rgba(244, 155, 172, 0.4)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
           gap: '16px',
+          animation: 'fadeIn 0.25s ease',
         }}>
           <div>
-            <strong>2 Outfits Selected for Head-to-Head Comparison</strong>
-            <div style={{ fontSize: '0.85rem', opacity: 0.9 }}>Ready to review score deltas and occasion verdict.</div>
+            <strong style={{ fontSize: '1.02rem' }}>2 Fits Selected for Head-to-Head Comparison</strong>
+            <div style={{ fontSize: '0.84rem', opacity: 0.9 }}>Ready to review score deltas and occasion verdict.</div>
           </div>
           <button
             onClick={() => onCompareSelected(selectedForCompare[0], selectedForCompare[1])}
             className="btn"
-            style={{ backgroundColor: '#ffffff', color: 'var(--acc)', borderColor: '#ffffff' }}
+            style={{
+              backgroundColor: '#120e14',
+              color: '#ffffff',
+              borderColor: '#120e14',
+              fontWeight: 600,
+            }}
           >
             <GitCompare size={16} />
             Compare Now
@@ -201,15 +207,16 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
           gap: '12px',
           padding: '14px 20px',
           borderRadius: 'var(--radius-sm)',
-          backgroundColor: '#fee2e2',
-          color: '#991b1b',
+          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
+          color: '#fca5a5',
           marginBottom: '24px',
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <AlertCircle size={18} />
             <span>{loadError}</span>
           </div>
-          <button onClick={fetchReports} className="btn sm" style={{ borderColor: '#991b1b', color: '#991b1b' }}>
+          <button onClick={fetchReports} className="btn sm outline">
             <RefreshCw size={14} /> Retry
           </button>
         </div>
@@ -218,23 +225,42 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
       {/* Outfit Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--mute)' }}>
-          Loading your fits...
+          <Sparkles size={24} className="spin" style={{ color: 'var(--acc)', marginBottom: '10px' }} />
+          <div>Curating your wardrobe...</div>
         </div>
       ) : reports.length === 0 ? (
-        <div className="card" style={{ textAlign: 'center', padding: '64px 20px' }}>
-          <h3 style={{ marginBottom: '8px' }}>Your style journey starts here.</h3>
-          <p className="mute" style={{ marginBottom: '24px' }}>
-            Analyze your first outfit to begin curating your private wardrobe library.
+        <div className="card" style={{
+          textAlign: 'center',
+          padding: '64px 20px',
+          background: 'var(--card-subtle)',
+          border: '1px solid var(--line)',
+        }}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            borderRadius: '50%',
+            backgroundColor: 'var(--acc2)',
+            color: 'var(--acc)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto 18px',
+          }}>
+            <Sparkles size={28} />
+          </div>
+          <h3 style={{ marginBottom: '8px', fontSize: '1.4rem' }}>Your style journey starts here.</h3>
+          <p className="mute" style={{ marginBottom: '24px', maxWidth: '440px', margin: '0 auto 24px' }}>
+            Analyze your first outfit to begin curating your private wardrobe library with AI style scores.
           </p>
-          <button onClick={onGoToStudio} className="btn primary">
-            <PlusCircle size={16} />
+          <button onClick={onGoToStudio} className="btn primary lg">
+            <PlusCircle size={17} />
             Analyze Your First Outfit
           </button>
         </div>
       ) : (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
           gap: '24px',
         }}>
           {reports.map((report) => {
@@ -246,11 +272,13 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                 style={{
                   display: 'flex',
                   flexDirection: 'column',
-                  padding: '16px',
+                  padding: '14px',
+                  background: 'var(--card-subtle)',
                   border: isSelected ? '2px solid var(--acc)' : '1px solid var(--line)',
+                  boxShadow: isSelected ? '0 0 20px rgba(244, 155, 172, 0.3)' : 'var(--shadow-sm)',
                 }}
               >
-                {/* Outfit Image */}
+                {/* Outfit Image Card */}
                 <div
                   onClick={() => onSelectReport(report)}
                   style={{
@@ -258,7 +286,7 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                     aspectRatio: '3/4',
                     borderRadius: 'var(--radius-sm)',
                     overflow: 'hidden',
-                    backgroundColor: 'var(--card-subtle)',
+                    backgroundColor: '#120e14',
                     cursor: 'pointer',
                     marginBottom: '14px',
                   }}
@@ -272,9 +300,17 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                         const fb = e.currentTarget.parentElement?.querySelector('.fallback-box') as HTMLElement;
                         if (fb) fb.style.display = 'flex';
                       }}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        transition: 'transform 0.3s ease',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.04)')}
+                      onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
                     />
                   ) : null}
+
                   <div
                     className="fallback-box"
                     style={{
@@ -291,23 +327,28 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                     }}
                   >
                     <Sparkles size={26} style={{ color: 'var(--acc)' }} />
-                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{report.style_title}</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>{report.style_title}</span>
                   </div>
 
-                  {/* Score Pill */}
+                  {/* Score Pill in Top Right (matching inspiration UI) */}
                   <div style={{
                     position: 'absolute',
                     top: '10px',
                     right: '10px',
-                    backgroundColor: 'rgba(26, 25, 24, 0.85)',
-                    backdropFilter: 'blur(4px)',
-                    color: '#fff',
+                    backgroundColor: 'rgba(18, 14, 22, 0.88)',
+                    backdropFilter: 'blur(8px)',
+                    border: '1px solid rgba(244, 155, 172, 0.35)',
+                    color: 'var(--ok)',
                     borderRadius: 'var(--radius-full)',
-                    padding: '4px 10px',
-                    fontSize: '0.85rem',
-                    fontWeight: 600,
+                    padding: '3px 10px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
                   }}>
-                    {report.overall_score || '—'}
+                    <span>✦</span>
+                    <span>{report.overall_score || '—'}/100</span>
                   </div>
                 </div>
 
@@ -315,13 +356,25 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                 <div style={{ marginBottom: '12px' }}>
                   <h3
                     onClick={() => onSelectReport(report)}
-                    style={{ fontSize: '1.2rem', marginBottom: '4px', cursor: 'pointer' }}
+                    style={{
+                      fontSize: '1.18rem',
+                      marginBottom: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 500,
+                    }}
                   >
                     {report.style_title}
                   </h3>
-                  <span className="mute" style={{ fontSize: '0.82rem' }}>
-                    {new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                  </span>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    fontSize: '0.78rem',
+                    color: 'var(--mute)',
+                  }}>
+                    <span>{new Date(report.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span style={{ color: 'var(--acc)', fontWeight: 600 }}>Rubric v{report.rubric_version}</span>
+                  </div>
                 </div>
 
                 {/* Inline Note */}
@@ -332,14 +385,15 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                   onBlur={(e) => handleNoteChange(report.id, e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '8px 10px',
+                    padding: '8px 12px',
                     borderRadius: 'var(--radius-sm)',
                     border: '1px solid var(--line)',
-                    backgroundColor: 'var(--bg)',
+                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
                     color: 'var(--ink)',
                     fontSize: '0.85rem',
                     marginBottom: '14px',
                     fontFamily: 'inherit',
+                    outline: 'none',
                   }}
                 />
 
@@ -349,7 +403,7 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   marginTop: 'auto',
-                  paddingTop: '8px',
+                  paddingTop: '10px',
                   borderTop: '1px solid var(--line)',
                 }}>
                   <label style={{
@@ -359,11 +413,14 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                     fontSize: '0.82rem',
                     cursor: 'pointer',
                     userSelect: 'none',
+                    color: isSelected ? 'var(--acc)' : 'var(--ink-secondary)',
+                    fontWeight: isSelected ? 600 : 400,
                   }}>
                     <input
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleCompare(report.id)}
+                      style={{ accentColor: 'var(--acc)' }}
                     />
                     Compare
                   </label>
@@ -378,6 +435,7 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                       color: 'var(--mute)',
                       padding: '4px',
                     }}
+                    title="Delete outfit"
                   >
                     <Trash2 size={16} />
                   </button>
@@ -394,14 +452,15 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
           bottom: '30px',
           left: '50%',
           transform: 'translateX(-50%)',
-          backgroundColor: 'var(--ink)',
-          color: 'var(--bg)',
-          padding: '10px 20px',
+          backgroundColor: '#120e14',
+          color: '#ffffff',
+          border: '1px solid var(--line-strong)',
+          padding: '12px 24px',
           borderRadius: 'var(--radius-full)',
           boxShadow: 'var(--shadow-lg)',
           zIndex: 80,
           fontSize: '0.9rem',
-          fontWeight: 500,
+          fontWeight: 600,
         }}>
           {toastMessage}
         </div>
