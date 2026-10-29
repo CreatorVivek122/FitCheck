@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { X, Download, Copy, Check } from 'lucide-react';
 import type { FitReport } from '../types';
+import { api } from '../services/api';
 
 interface ShareCardModalProps {
   report: FitReport;
@@ -92,7 +93,7 @@ export const ShareCardModal: React.FC<ShareCardModalProps> = ({ report, onClose 
       img.onerror = () => {
         drawBottomDetails();
       };
-      img.src = report.image_url;
+      img.src = api.resolveImageUrl(report.image_url);
     } else {
       drawBottomDetails();
     }

@@ -13,6 +13,7 @@ from app.services.scoring_service import ScoringService
 from app.services.safety_service import SafetyService
 from app.ai import get_vision_provider
 from app.core.errors import NotFoundError, AIInferenceError
+from app.core.config import settings
 
 class AnalysisService:
     def __init__(self, db: AsyncSession, storage: StorageProvider):
@@ -184,7 +185,7 @@ class AnalysisService:
                 rubric_version=report_model.rubric_version,
                 model_id=report_model.model_id,
                 created_at=report_model.created_at,
-                image_url=f"/api/v1/uploads/{report_model.image_id}/file" if report_model.image_id else None
+                image_url=(f"{settings.API_BASE_URL.rstrip('/')}/api/v1/uploads/{report_model.image_id}/file" if settings.API_BASE_URL else f"/api/v1/uploads/{report_model.image_id}/file") if report_model.image_id else None
             )
 
         return AnalysisStatusResponse(

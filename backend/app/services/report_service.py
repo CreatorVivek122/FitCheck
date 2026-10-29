@@ -12,6 +12,7 @@ from app.schemas.report import (
 from app.schemas.common import PaginatedResponse
 from app.services.storage_service import StorageProvider
 from app.core.errors import NotFoundError
+from app.core.config import settings
 
 class ReportService:
     def __init__(self, db: AsyncSession, storage: StorageProvider):
@@ -44,7 +45,7 @@ class ReportService:
             rubric_version=r.rubric_version,
             model_id=r.model_id,
             created_at=r.created_at,
-            image_url=f"/api/v1/uploads/{r.image_id}/file" if r.image_id else None
+            image_url=(f"{settings.API_BASE_URL.rstrip('/')}/api/v1/uploads/{r.image_id}/file" if settings.API_BASE_URL else f"/api/v1/uploads/{r.image_id}/file") if r.image_id else None
         )
 
     async def list_reports(

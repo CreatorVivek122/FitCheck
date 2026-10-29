@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Trash2, GitCompare, PlusCircle } from 'lucide-react';
+import { Search, Trash2, GitCompare, PlusCircle, Sparkles, AlertCircle, RefreshCw } from 'lucide-react';
 import type { FitReport } from '../types';
 import { api } from '../services/api';
 
@@ -16,6 +16,7 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
 }) => {
   const [reports, setReports] = useState<FitReport[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [occasionFilter, setOccasionFilter] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'score_desc' | 'score_asc'>('newest');
@@ -25,14 +26,15 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
   const fetchReports = async () => {
     try {
       setLoading(true);
+      setLoadError(null);
       const res = await api.listReports({
         q: searchQuery,
         occasion: occasionFilter,
         sort: sortBy,
       });
       setReports(res.items);
-    } catch {
-      // ignore
+    } catch (err: any) {
+      setLoadError(err?.message || 'Could not load your saved fits.');
     } finally {
       setLoading(false);
     }
@@ -191,6 +193,28 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
         </div>
       )}
 
+      {loadError && (
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '12px',
+          padding: '14px 20px',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: '#fee2e2',
+          color: '#991b1b',
+          marginBottom: '24px',
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <AlertCircle size={18} />
+            <span>{loadError}</span>
+          </div>
+          <button onClick={fetchReports} className="btn sm" style={{ borderColor: '#991b1b', color: '#991b1b' }}>
+            <RefreshCw size={14} /> Retry
+          </button>
+        </div>
+      )}
+
       {/* Outfit Grid */}
       {loading ? (
         <div style={{ textAlign: 'center', padding: '60px 0', color: 'var(--mute)' }}>
@@ -241,15 +265,34 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                 >
                   {report.image_url ? (
                     <img
-                      src={report.image_url}
+                      src={api.resolveImageUrl(report.image_url)}
                       alt={report.style_title}
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        const fb = e.currentTarget.parentElement?.querySelector('.fallback-box') as HTMLElement;
+                        if (fb) fb.style.display = 'flex';
+                      }}
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                     />
-                  ) : (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'var(--mute)' }}>
-                      No Image
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    className="fallback-box"
+                    style={{
+                      display: report.image_url ? 'none' : 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '8px',
+                      height: '100%',
+                      backgroundColor: 'var(--card-subtle)',
+                      color: 'var(--mute)',
+                      padding: '16px',
+                      textAlign: 'center',
+                    }}
+                  >
+                    <Sparkles size={26} style={{ color: 'var(--acc)' }} />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 500 }}>{report.style_title}</span>
+                  </div>
 
                   {/* Score Pill */}
                   <div style={{

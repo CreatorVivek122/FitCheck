@@ -60,6 +60,7 @@ class Settings(BaseModel):
     ]
     SECRET_KEY: str = Field(default_factory=lambda: os.getenv("SECRET_KEY", "fitcheck-dev-secret-key-change-in-production-2026"))
     DEFAULT_USER_ID: str = "user-default-001"
+    API_BASE_URL: Optional[str] = Field(default_factory=lambda: os.getenv("API_BASE_URL"))
 
 settings = Settings()
 

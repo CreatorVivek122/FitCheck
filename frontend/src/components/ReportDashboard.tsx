@@ -96,8 +96,11 @@ export const ReportDashboard: React.FC<ReportDashboardProps> = ({
           <div style={{ position: 'sticky', top: '96px' }}>
             <div className="card" style={{ padding: '12px', overflow: 'hidden' }}>
               <img
-                src={report.image_url}
+                src={api.resolveImageUrl(report.image_url)}
                 alt={report.style_title}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                }}
                 style={{
                   width: '100%',
                   borderRadius: 'var(--radius-sm)',

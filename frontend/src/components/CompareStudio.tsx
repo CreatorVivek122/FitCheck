@@ -191,8 +191,9 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
               )}
               {result.report_a.image_url && (
                 <img
-                  src={result.report_a.image_url}
+                  src={api.resolveImageUrl(result.report_a.image_url)}
                   alt={result.report_a.style_title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     width: '100%',
                     aspectRatio: '3/4',
@@ -227,8 +228,9 @@ export const CompareStudio: React.FC<CompareStudioProps> = ({
               )}
               {result.report_b.image_url && (
                 <img
-                  src={result.report_b.image_url}
+                  src={api.resolveImageUrl(result.report_b.image_url)}
                   alt={result.report_b.style_title}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
                   style={{
                     width: '100%',
                     aspectRatio: '3/4',

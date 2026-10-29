@@ -6,7 +6,33 @@ import type {
   CompareResult
 } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const RAW_API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
+
+export function resolveImageUrl(urlOrPath?: string | null): string {
+  if (!urlOrPath) return '';
+  // If it's already an absolute URL (http, https, blob, data)
+  if (/^(https?:|\/\/|blob:|data:)/i.test(urlOrPath)) {
+    return urlOrPath;
+  }
+  // If it's a relative path, resolve against the backend API base
+  const cleanPath = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
+  return `${API_BASE}${cleanPath}`;
+}
+
+function normalizeReport(r: FitReport): FitReport {
+  return {
+    ...r,
+    image_url: r.image_url ? resolveImageUrl(r.image_url) : (r.image_id ? `${API_BASE}/api/v1/uploads/${r.image_id}/file` : undefined)
+  };
+}
+
+function normalizeUpload(u: UploadResponse): UploadResponse {
+  return {
+    ...u,
+    preview_url: resolveImageUrl(u.preview_url)
+  };
+}
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
@@ -25,6 +51,9 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const api = {
+  API_BASE,
+  resolveImageUrl,
+
   // Uploads
   async uploadImage(file: File): Promise<UploadResponse> {
     const formData = new FormData();
@@ -33,7 +62,8 @@ export const api = {
       method: 'POST',
       body: formData,
     });
-    return handleResponse<UploadResponse>(res);
+    const data = await handleResponse<UploadResponse>(res);
+    return normalizeUpload(data);
   },
 
   getImageUrl(imageId: string): string {
@@ -59,12 +89,20 @@ export const api = {
         feedback_tone: params.feedbackTone,
       }),
     });
-    return handleResponse<AnalysisJob>(res);
+    const data = await handleResponse<AnalysisJob>(res);
+    if (data.report) {
+      data.report = normalizeReport(data.report);
+    }
+    return data;
   },
 
   async getAnalysis(analysisId: string): Promise<AnalysisJob> {
     const res = await fetch(`${API_BASE}/api/v1/analyses/${analysisId}`);
-    return handleResponse<AnalysisJob>(res);
+    const data = await handleResponse<AnalysisJob>(res);
+    if (data.report) {
+      data.report = normalizeReport(data.report);
+    }
+    return data;
   },
 
   // Reports
@@ -83,12 +121,17 @@ export const api = {
     if (params?.sort) searchParams.set('sort', params.sort);
 
     const res = await fetch(`${API_BASE}/api/v1/reports?${searchParams.toString()}`);
-    return handleResponse(res);
+    const data = await handleResponse<{ items: FitReport[]; total: number; has_more: boolean }>(res);
+    return {
+      ...data,
+      items: (data.items || []).map(normalizeReport),
+    };
   },
 
   async getReport(reportId: string): Promise<FitReport> {
     const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`);
-    return handleResponse<FitReport>(res);
+    const data = await handleResponse<FitReport>(res);
+    return normalizeReport(data);
   },
 
   async updateReport(
@@ -100,7 +143,8 @@ export const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
-    return handleResponse<FitReport>(res);
+    const resData = await handleResponse<FitReport>(res);
+    return normalizeReport(resData);
   },
 
   async deleteReport(reportId: string): Promise<void> {
@@ -124,7 +168,12 @@ export const api = {
         target_occasion: occasion,
       }),
     });
-    return handleResponse<CompareResult>(res);
+    const data = await handleResponse<CompareResult>(res);
+    return {
+      ...data,
+      report_a: normalizeReport(data.report_a),
+      report_b: normalizeReport(data.report_b),
+    };
   },
 
   getExportUrl(reportId: string): string {
