@@ -33,6 +33,7 @@ class FitReportResponse(BaseModel):
     model_id: str
     created_at: datetime
     image_url: Optional[str] = None
+    thumbnail_url: Optional[str] = None
 
 class ReportUpdateRequest(BaseModel):
     user_note: Optional[str] = None

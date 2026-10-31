@@ -37,6 +37,10 @@ class ValidationError(FitCheckException):
     def __init__(self, message: str = "Invalid input data"):
         super().__init__(code="VALIDATION_ERROR", message=message, status_code=422)
 
+class ConflictError(FitCheckException):
+    def __init__(self, message: str = "Resource conflict detected"):
+        super().__init__(code="CONFLICT", message=message, status_code=409)
+
 class ImageTooLargeError(FitCheckException):
     def __init__(self, message: str = "This image exceeds the 10 MB maximum allowed limit."):
         super().__init__(code="IMAGE_TOO_LARGE", message=message, status_code=413)

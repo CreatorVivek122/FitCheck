@@ -11,6 +11,7 @@ from app.schemas.report import (
 )
 from app.schemas.common import PaginatedResponse
 from app.services.storage_service import StorageProvider
+from app.services.media_service import MediaService
 from app.core.errors import NotFoundError
 from app.core.config import settings
 
@@ -45,7 +46,8 @@ class ReportService:
             rubric_version=r.rubric_version,
             model_id=r.model_id,
             created_at=r.created_at,
-            image_url=(f"{settings.API_BASE_URL.rstrip('/')}/api/v1/uploads/{r.image_id}/file" if settings.API_BASE_URL else f"/api/v1/uploads/{r.image_id}/file") if r.image_id else None
+            image_url=(f"{settings.API_BASE_URL.rstrip('/')}/api/v1/uploads/{r.image_id}/file" if settings.API_BASE_URL else f"/api/v1/uploads/{r.image_id}/file") if r.image_id else None,
+            thumbnail_url=(f"{settings.API_BASE_URL.rstrip('/')}/api/v1/uploads/{r.image_id}/thumbnail" if settings.API_BASE_URL else f"/api/v1/uploads/{r.image_id}/thumbnail") if r.image_id else None
         )
 
     async def list_reports(
@@ -139,16 +141,24 @@ class ReportService:
         if not report:
             raise NotFoundError("Report not found.")
 
-        # Cleanup image file if present and not referenced by another active report
-        if report.image_id:
-            img_stmt = select(ImageUpload).where(ImageUpload.id == report.image_id)
-            img_res = await self.db.execute(img_stmt)
-            img = img_res.scalar_one_or_none()
-            if img:
-                await self.storage.delete(img.storage_key)
-                await self.db.delete(img)
+        image_id = report.image_id
 
+        # Delete report record
         await self.db.delete(report)
+        await self.db.flush()
+
+        # Safe media cleanup: Only clean up image if no other report or analysis references it
+        if image_id:
+            media_service = MediaService(self.db, self.storage)
+            is_still_referenced = await media_service.is_image_referenced(image_id)
+            if not is_still_referenced:
+                img_stmt = select(ImageUpload).where(ImageUpload.id == image_id)
+                img_res = await self.db.execute(img_stmt)
+                img = img_res.scalar_one_or_none()
+                if img:
+                    await media_service.delete_image_files(img)
+                    await self.db.delete(img)
+
         await self.db.commit()
         return True
 

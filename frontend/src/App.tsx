@@ -8,6 +8,7 @@ import { CompareStudio } from './components/CompareStudio';
 import { CommunityDiscover } from './components/CommunityDiscover';
 import { ShareCardModal } from './components/ShareCardModal';
 import { ProfileModal } from './components/ProfileModal';
+import { AuthModal } from './components/AuthModal';
 import type { FitReport } from './types';
 import { api } from './services/api';
 import { Sparkles, Home, Layers, GitCompare, Compass } from 'lucide-react';
@@ -267,6 +268,9 @@ export const App: React.FC = () => {
           }}
         />
       )}
+
+      {/* Supabase Authentication Modal */}
+      <AuthModal />
 
       {/* Footer */}
       <footer style={{

@@ -291,11 +291,17 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                     marginBottom: '14px',
                   }}
                 >
-                  {report.image_url ? (
+                  {(report.thumbnail_url || report.image_url) ? (
                     <img
-                      src={api.resolveImageUrl(report.image_url)}
+                      src={api.resolveImageUrl(report.thumbnail_url || report.image_url)}
                       alt={report.style_title}
                       onError={(e) => {
+                        const currentSrc = e.currentTarget.src;
+                        const fullUrl = report.image_url ? api.resolveImageUrl(report.image_url) : '';
+                        if (fullUrl && currentSrc !== fullUrl) {
+                          e.currentTarget.src = fullUrl;
+                          return;
+                        }
                         e.currentTarget.style.display = 'none';
                         const fb = e.currentTarget.parentElement?.querySelector('.fallback-box') as HTMLElement;
                         if (fb) fb.style.display = 'flex';
@@ -314,7 +320,7 @@ export const MyFitsVault: React.FC<MyFitsVaultProps> = ({
                   <div
                     className="fallback-box"
                     style={{
-                      display: report.image_url ? 'none' : 'flex',
+                      display: (report.thumbnail_url || report.image_url) ? 'none' : 'flex',
                       flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',

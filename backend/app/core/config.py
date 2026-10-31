@@ -62,5 +62,11 @@ class Settings(BaseModel):
     DEFAULT_USER_ID: str = "user-default-001"
     API_BASE_URL: Optional[str] = Field(default_factory=lambda: os.getenv("API_BASE_URL"))
 
+    # Supabase Auth Configuration
+    SUPABASE_URL: Optional[str] = Field(default_factory=lambda: os.getenv("SUPABASE_URL"))
+    SUPABASE_ANON_KEY: Optional[str] = Field(default_factory=lambda: os.getenv("SUPABASE_ANON_KEY"))
+    SUPABASE_JWT_SECRET: Optional[str] = Field(default_factory=lambda: os.getenv("SUPABASE_JWT_SECRET"))
+    AUTH_REQUIRED: bool = Field(default_factory=lambda: os.getenv("AUTH_REQUIRED", "false").lower() in ("true", "1", "t"))
+
 settings = Settings()
 

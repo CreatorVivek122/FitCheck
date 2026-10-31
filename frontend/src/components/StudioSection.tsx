@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Upload, X, RefreshCw, Sparkles, Check, AlertCircle, ArrowRight, Shield, Camera } from 'lucide-react';
 import { api } from '../services/api';
 import type { FitReport } from '../types';
@@ -55,6 +55,16 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
+  previewUrlRef.current = previewUrl;
+
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current && previewUrlRef.current.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrlRef.current);
+      }
+    };
+  }, []);
 
   const handleFile = (selectedFile: File) => {
     setErrorMessage(null);
@@ -75,6 +85,9 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
         URL.revokeObjectURL(objectUrl);
         return;
       }
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
       setFile(selectedFile);
       setPreviewUrl(objectUrl);
     };
@@ -86,10 +99,15 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
   };
 
   const handleClear = () => {
-    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    if (previewUrl && previewUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(previewUrl);
+    }
     setFile(null);
     setPreviewUrl(null);
     setErrorMessage(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const handleAnalyze = async () => {
@@ -222,7 +240,10 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 style={{ display: 'none' }}
-                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) handleFile(e.target.files[0]);
+                  e.target.value = '';
+                }}
               />
             </div>
           ) : (
@@ -269,7 +290,10 @@ export const StudioSection: React.FC<StudioSectionProps> = ({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 style={{ display: 'none' }}
-                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+                onChange={(e) => {
+                  if (e.target.files?.[0]) handleFile(e.target.files[0]);
+                  e.target.value = '';
+                }}
               />
             </div>
           )}

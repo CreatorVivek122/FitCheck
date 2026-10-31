@@ -46,8 +46,7 @@ app.add_middleware(
 
 # Error handlers
 app.add_exception_handler(FitCheckException, fitcheck_exception_handler)
-if not settings.DEBUG:
-    app.add_exception_handler(Exception, generic_exception_handler)
+app.add_exception_handler(Exception, generic_exception_handler)
 
 # Include API v1 router
 app.include_router(api_router)

@@ -10,6 +10,7 @@ class UploadResponse(BaseModel):
     height: int
     created_at: datetime
     preview_url: str
+    thumbnail_url: Optional[str] = None
 
 class ImageMetadataResponse(BaseModel):
     id: str
@@ -21,4 +22,4 @@ class ImageMetadataResponse(BaseModel):
     checksum_sha256: str
     created_at: datetime
     preview_url: str
-
+    thumbnail_url: Optional[str] = None

@@ -1,14 +1,17 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, Response
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func, delete
 from app.db.session import get_db
-from app.core.security import get_current_user_id
+from app.core.security import get_current_user_id, get_current_user_claims
 from app.models.user import User
 from app.models.report import FitReport
 from app.models.image import ImageUpload
+from app.models.analysis import AnalysisJob
 from app.schemas.user import UserProfileResponse, UserPreferencesUpdate
 from app.services.storage_service import get_storage_provider, StorageProvider
 from app.services.report_service import ReportService
+from app.services.media_service import MediaService
 import json
 
 router = APIRouter(prefix="/me", tags=["user"])
@@ -16,14 +19,22 @@ router = APIRouter(prefix="/me", tags=["user"])
 @router.get("", response_model=UserProfileResponse)
 async def get_profile(
     user_id: str = Depends(get_current_user_id),
+    claims: Optional[dict] = Depends(get_current_user_claims),
     db: AsyncSession = Depends(get_db)
 ):
     stmt = select(User).where(User.id == user_id)
     res = await db.execute(stmt)
     user = res.scalar_one_or_none()
     if not user:
-        user = User(id=user_id, username="Fashion Friend")
+        email = claims.get("email") if claims else None
+        meta = claims.get("user_metadata", {}) if claims else {}
+        username = meta.get("full_name") or meta.get("name") or (email.split("@")[0] if email else "Fashion Friend")
+        user = User(id=user_id, username=username, email=email)
         db.add(user)
+        await db.commit()
+        await db.refresh(user)
+    elif claims and not user.email and claims.get("email"):
+        user.email = claims.get("email")
         await db.commit()
         await db.refresh(user)
 
@@ -114,16 +125,16 @@ async def wipe_user_data(
     db: AsyncSession = Depends(get_db),
     storage: StorageProvider = Depends(get_storage_provider)
 ):
+    media_service = MediaService(db, storage)
     # Find all images and delete storage files
     img_stmt = select(ImageUpload).where(ImageUpload.user_id == user_id)
     img_res = await db.execute(img_stmt)
     for img in img_res.scalars().all():
-        await storage.delete(img.storage_key)
-        if img.thumbnail_key:
-            await storage.delete(img.thumbnail_key)
+        await media_service.delete_image_files(img)
 
     # Delete from DB
     await db.execute(delete(FitReport).where(FitReport.user_id == user_id))
+    await db.execute(delete(AnalysisJob).where(AnalysisJob.user_id == user_id))
     await db.execute(delete(ImageUpload).where(ImageUpload.user_id == user_id))
     await db.execute(delete(User).where(User.id == user_id))
     await db.commit()

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, User, Download, Trash2, Check } from 'lucide-react';
+import { X, User, Download, Trash2, Check, LogOut, LogIn, ShieldCheck } from 'lucide-react';
 import { api } from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 interface ProfileModalProps {
   onClose: () => void;
@@ -8,6 +9,7 @@ interface ProfileModalProps {
 }
 
 export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onDataWiped }) => {
+  const { user, signOut, openAuthModal } = useAuth();
   const [username, setUsername] = useState('');
   const [defaultOccasion, setDefaultOccasion] = useState('Everyday / Casual');
   const [preferredStyle, setPreferredStyle] = useState('Minimalist');
@@ -17,13 +19,13 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onDataWiped
 
   useEffect(() => {
     api.getProfile().then((data) => {
-      setUsername(data.username || 'Fashion Friend');
+      setUsername(data.username || (user?.user_metadata?.full_name || 'Fashion Friend'));
       setDefaultOccasion(data.default_occasion || 'Everyday / Casual');
       setPreferredStyle(data.preferred_style || 'Minimalist');
       setFeedbackTone(data.feedback_tone || 'Honest and direct');
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, []);
+  }, [user]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -97,22 +99,93 @@ export const ProfileModal: React.FC<ProfileModalProps> = ({ onClose, onDataWiped
           <X size={20} />
         </button>
 
+        {/* User Account / Membership Status Banner */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '12px 16px',
+          borderRadius: 'var(--radius-sm)',
+          backgroundColor: user ? 'var(--card-subtle)' : 'var(--acc2)',
+          border: '1px solid var(--line)',
+          marginBottom: '24px',
+          gap: '12px',
+          flexWrap: 'wrap',
+        }}>
+          {user ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--acc2)',
+                color: 'var(--acc)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 700,
+                fontSize: '0.9rem',
+              }}>
+                {(user.email?.[0] || 'U').toUpperCase()}
+              </div>
+              <div>
+                <div style={{ fontSize: '0.9rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <span>{user.email}</span>
+                  <ShieldCheck size={14} style={{ color: 'var(--ok)' }} />
+                </div>
+                <div style={{ fontSize: '0.76rem', color: 'var(--mute)' }}>Authenticated Member</div>
+              </div>
+            </div>
+          ) : (
+            <div>
+              <div style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--ink)' }}>Guest Browsing Mode</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--mute)' }}>Sign in to sync your wardrobe across devices.</div>
+            </div>
+          )}
+
+          {user ? (
+            <button
+              type="button"
+              onClick={() => {
+                signOut();
+                onClose();
+              }}
+              className="btn sm outline"
+              style={{ fontSize: '0.8rem', gap: '5px' }}
+            >
+              <LogOut size={13} /> Sign Out
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                openAuthModal();
+              }}
+              className="btn sm primary"
+              style={{ fontSize: '0.8rem', gap: '5px' }}
+            >
+              <LogIn size={13} /> Sign In
+            </button>
+          )}
+        </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '24px' }}>
           <div style={{
-            width: '46px',
-            height: '46px',
+            width: '44px',
+            height: '44px',
             borderRadius: '50%',
-            backgroundColor: 'var(--acc2)',
-            color: 'var(--acc)',
+            backgroundColor: 'var(--card-subtle)',
+            color: 'var(--ink)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            border: '1px solid rgba(244, 155, 172, 0.3)',
+            border: '1px solid var(--line)',
           }}>
-            <User size={22} />
+            <User size={20} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1.4rem', marginBottom: '2px' }}>Stylist Preferences</h3>
+            <h3 style={{ fontSize: '1.35rem', marginBottom: '2px' }}>Stylist Preferences</h3>
             <p className="mute" style={{ fontSize: '0.85rem', margin: 0 }}>
               Tailor default parameters for your AI outfit analyses.
             </p>

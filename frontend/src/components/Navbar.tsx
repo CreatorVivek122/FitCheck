@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Sparkles, Sun, Moon, User, Layers, GitCompare, Compass, Plus, Menu, X } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
   currentView: string;
@@ -18,6 +19,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   savedCount,
   onOpenProfile,
 }) => {
+  const { user, openAuthModal } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems = [
@@ -170,22 +172,56 @@ export const Navbar: React.FC<NavbarProps> = ({
             {isDark ? <Sun size={16} style={{ color: 'var(--acc)' }} /> : <Moon size={16} style={{ color: 'var(--acc)' }} />}
           </button>
 
-          {/* Profile Button */}
-          <button
-            onClick={onOpenProfile}
-            aria-label="Open profile settings"
-            className="btn sm"
-            style={{
-              padding: '0 14px',
-              height: '38px',
-              background: 'var(--card)',
-              borderColor: 'var(--line)',
-              color: 'var(--ink)',
-            }}
-          >
-            <User size={15} style={{ color: 'var(--mute)' }} />
-            <span>Profile</span>
-          </button>
+          {/* Profile or Sign-In Button */}
+          {user ? (
+            <button
+              onClick={onOpenProfile}
+              aria-label="Open profile settings"
+              className="btn sm"
+              style={{
+                padding: '0 14px',
+                height: '38px',
+                background: 'var(--card)',
+                borderColor: 'var(--line)',
+                color: 'var(--ink)',
+                gap: '8px',
+              }}
+            >
+              <div style={{
+                width: '20px',
+                height: '20px',
+                borderRadius: '50%',
+                backgroundColor: 'var(--acc2)',
+                color: 'var(--acc)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+              }}>
+                {(user.email?.[0] || 'U').toUpperCase()}
+              </div>
+              <span style={{ maxWidth: '110px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Profile'}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={openAuthModal}
+              className="btn sm"
+              style={{
+                padding: '0 14px',
+                height: '38px',
+                background: 'var(--card)',
+                borderColor: 'var(--line)',
+                color: 'var(--ink)',
+                gap: '6px',
+              }}
+            >
+              <User size={15} style={{ color: 'var(--mute)' }} />
+              <span>Sign In</span>
+            </button>
+          )}
 
           {/* Primary Action Button */}
           <button
@@ -315,17 +351,31 @@ export const Navbar: React.FC<NavbarProps> = ({
                 <span>{isDark ? 'Light Mode' : 'Dark Mode'}</span>
               </button>
 
-              <button
-                onClick={() => {
-                  onOpenProfile();
-                  setMobileMenuOpen(false);
-                }}
-                className="btn outline sm"
-                style={{ flex: 1, height: '42px', gap: '8px' }}
-              >
-                <User size={16} />
-                <span>My Profile</span>
-              </button>
+              {user ? (
+                <button
+                  onClick={() => {
+                    onOpenProfile();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="btn outline sm"
+                  style={{ flex: 1, height: '42px', gap: '8px' }}
+                >
+                  <User size={16} />
+                  <span>My Profile</span>
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    openAuthModal();
+                    setMobileMenuOpen(false);
+                  }}
+                  className="btn primary sm"
+                  style={{ flex: 1, height: '42px', gap: '8px' }}
+                >
+                  <User size={16} />
+                  <span>Sign In</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

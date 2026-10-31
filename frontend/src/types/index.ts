@@ -37,6 +37,7 @@ export interface FitReport {
   model_id: string;
   created_at: string;
   image_url?: string;
+  thumbnail_url?: string;
 }
 
 export interface UploadResponse {
@@ -47,6 +48,7 @@ export interface UploadResponse {
   height: number;
   created_at: string;
   preview_url: string;
+  thumbnail_url?: string;
 }
 
 export interface AnalysisJob {

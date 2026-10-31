@@ -41,6 +41,7 @@ class UploadService:
             pil_img.verify()
             # Reopen for actual processing as verify closes some internal buffers
             pil_img = Image.open(io.BytesIO(raw_bytes))
+            pil_img.load()
         except Exception:
             raise InvalidImageFormatError("Failed to decode image. Please provide a valid JPG, PNG, or WEBP.")
 

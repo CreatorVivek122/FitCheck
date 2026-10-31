@@ -9,28 +9,55 @@ import type {
 const RAW_API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 export const API_BASE = RAW_API_BASE.replace(/\/+$/, '');
 
+let currentAuthToken: string | null = null;
+
+export function setAuthToken(token: string | null) {
+  currentAuthToken = token;
+}
+
+export function getAuthToken(): string | null {
+  return currentAuthToken;
+}
+
+function getAuthHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {};
+  if (currentAuthToken) {
+    headers['Authorization'] = `Bearer ${currentAuthToken}`;
+  }
+  return headers;
+}
+
 export function resolveImageUrl(urlOrPath?: string | null): string {
   if (!urlOrPath) return '';
-  // If it's already an absolute URL (http, https, blob, data)
-  if (/^(https?:|\/\/|blob:|data:)/i.test(urlOrPath)) {
+  if (/^blob:/i.test(urlOrPath) || /^data:/i.test(urlOrPath)) {
     return urlOrPath;
   }
-  // If it's a relative path, resolve against the backend API base
-  const cleanPath = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
-  return `${API_BASE}${cleanPath}`;
+  let fullUrl = urlOrPath;
+  if (!/^(https?:|\/\/)/i.test(urlOrPath)) {
+    const cleanPath = urlOrPath.startsWith('/') ? urlOrPath : `/${urlOrPath}`;
+    fullUrl = `${API_BASE}${cleanPath}`;
+  }
+  // Attach token parameter to direct image tags if available
+  if (currentAuthToken && fullUrl.includes('/api/v1/uploads/') && !fullUrl.includes('token=')) {
+    const delimiter = fullUrl.includes('?') ? '&' : '?';
+    fullUrl = `${fullUrl}${delimiter}token=${encodeURIComponent(currentAuthToken)}`;
+  }
+  return fullUrl;
 }
 
 function normalizeReport(r: FitReport): FitReport {
   return {
     ...r,
-    image_url: r.image_url ? resolveImageUrl(r.image_url) : (r.image_id ? `${API_BASE}/api/v1/uploads/${r.image_id}/file` : undefined)
+    image_url: r.image_url ? resolveImageUrl(r.image_url) : (r.image_id ? `${API_BASE}/api/v1/uploads/${r.image_id}/file` : undefined),
+    thumbnail_url: r.thumbnail_url ? resolveImageUrl(r.thumbnail_url) : (r.image_id ? `${API_BASE}/api/v1/uploads/${r.image_id}/thumbnail` : undefined),
   };
 }
 
 function normalizeUpload(u: UploadResponse): UploadResponse {
   return {
     ...u,
-    preview_url: resolveImageUrl(u.preview_url)
+    preview_url: resolveImageUrl(u.preview_url),
+    thumbnail_url: u.thumbnail_url ? resolveImageUrl(u.thumbnail_url) : (u.id ? `${API_BASE}/api/v1/uploads/${u.id}/thumbnail` : undefined),
   };
 }
 
@@ -41,6 +68,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
       const errJson = await res.json();
       if (errJson?.error?.message) {
         errMsg = errJson.error.message;
+      } else if (errJson?.detail) {
+        errMsg = typeof errJson.detail === 'string' ? errJson.detail : JSON.stringify(errJson.detail);
       }
     } catch {
       // ignore
@@ -53,6 +82,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
 export const api = {
   API_BASE,
   resolveImageUrl,
+  setAuthToken,
+  getAuthToken,
 
   // Uploads
   async uploadImage(file: File): Promise<UploadResponse> {
@@ -60,6 +91,9 @@ export const api = {
     formData.append('file', file);
     const res = await fetch(`${API_BASE}/api/v1/uploads`, {
       method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
       body: formData,
     });
     const data = await handleResponse<UploadResponse>(res);
@@ -67,7 +101,13 @@ export const api = {
   },
 
   getImageUrl(imageId: string): string {
-    return `${API_BASE}/api/v1/uploads/${imageId}/file`;
+    const url = `${API_BASE}/api/v1/uploads/${imageId}/file`;
+    return resolveImageUrl(url);
+  },
+
+  getThumbnailUrl(imageId: string): string {
+    const url = `${API_BASE}/api/v1/uploads/${imageId}/thumbnail`;
+    return resolveImageUrl(url);
   },
 
   // Analyses
@@ -81,6 +121,7 @@ export const api = {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        ...getAuthHeaders(),
       },
       body: JSON.stringify({
         image_id: params.imageId,
@@ -97,7 +138,11 @@ export const api = {
   },
 
   async getAnalysis(analysisId: string): Promise<AnalysisJob> {
-    const res = await fetch(`${API_BASE}/api/v1/analyses/${analysisId}`);
+    const res = await fetch(`${API_BASE}/api/v1/analyses/${analysisId}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
     const data = await handleResponse<AnalysisJob>(res);
     if (data.report) {
       data.report = normalizeReport(data.report);
@@ -120,7 +165,11 @@ export const api = {
     if (params?.occasion) searchParams.set('occasion', params.occasion);
     if (params?.sort) searchParams.set('sort', params.sort);
 
-    const res = await fetch(`${API_BASE}/api/v1/reports?${searchParams.toString()}`);
+    const res = await fetch(`${API_BASE}/api/v1/reports?${searchParams.toString()}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
     const data = await handleResponse<{ items: FitReport[]; total: number; has_more: boolean }>(res);
     return {
       ...data,
@@ -129,7 +178,11 @@ export const api = {
   },
 
   async getReport(reportId: string): Promise<FitReport> {
-    const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`);
+    const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
     const data = await handleResponse<FitReport>(res);
     return normalizeReport(data);
   },
@@ -140,7 +193,10 @@ export const api = {
   ): Promise<FitReport> {
     const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(data),
     });
     const resData = await handleResponse<FitReport>(res);
@@ -150,6 +206,9 @@ export const api = {
   async deleteReport(reportId: string): Promise<void> {
     const res = await fetch(`${API_BASE}/api/v1/reports/${reportId}`, {
       method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
     });
     await handleResponse(res);
   },
@@ -161,7 +220,10 @@ export const api = {
   ): Promise<CompareResult> {
     const res = await fetch(`${API_BASE}/api/v1/reports/compare`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({
         report_a_id: reportAId,
         report_b_id: reportBId,
@@ -177,36 +239,53 @@ export const api = {
   },
 
   getExportUrl(reportId: string): string {
-    return `${API_BASE}/api/v1/reports/${reportId}/export`;
+    const url = `${API_BASE}/api/v1/reports/${reportId}/export`;
+    return resolveImageUrl(url);
   },
 
   // User Profile
   async getProfile(): Promise<UserProfile> {
-    const res = await fetch(`${API_BASE}/api/v1/me`);
+    const res = await fetch(`${API_BASE}/api/v1/me`, {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse<UserProfile>(res);
   },
 
   async updateProfile(data: Partial<UserProfile>): Promise<UserProfile> {
     const res = await fetch(`${API_BASE}/api/v1/me`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(data),
     });
     return handleResponse<UserProfile>(res);
   },
 
   getUserExportUrl(): string {
-    return `${API_BASE}/api/v1/me/export`;
+    const url = `${API_BASE}/api/v1/me/export`;
+    return resolveImageUrl(url);
   },
 
   async exportUserData(): Promise<any> {
-    const res = await fetch(`${API_BASE}/api/v1/me/export`, { method: 'POST' });
+    const res = await fetch(`${API_BASE}/api/v1/me/export`, {
+      method: 'POST',
+      headers: {
+        ...getAuthHeaders(),
+      },
+    });
     return handleResponse(res);
   },
 
   async wipeUserData(): Promise<void> {
     const res = await fetch(`${API_BASE}/api/v1/me`, {
       method: 'DELETE',
+      headers: {
+        ...getAuthHeaders(),
+      },
     });
     await handleResponse(res);
   },
