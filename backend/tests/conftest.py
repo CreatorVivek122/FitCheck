@@ -14,6 +14,11 @@ TEST_DB_URL = "sqlite+aiosqlite:///:memory:"
 
 os.environ["DATABASE_URL"] = TEST_DB_URL
 os.environ["STORAGE_DIR"] = "./test_storage"
+os.environ["AUTH_REQUIRED"] = "false"
+
+from app.core.config import settings
+settings.AUTH_REQUIRED = False
+settings.DATABASE_URL = TEST_DB_URL
 
 from app.db.session import Base
 from app.main import app
