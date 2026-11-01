@@ -38,6 +38,9 @@ else:
     engine_kwargs["pool_size"] = 10
     engine_kwargs["max_overflow"] = 20
     engine_kwargs["pool_pre_ping"] = True  # Automatically test connections to recover from dropped cloud connections
+    if "asyncpg" in DATABASE_URL:
+        # Crucial for Supabase connection pooler (Supavisor / PgBouncer port 6543)
+        connect_args["statement_cache_size"] = 0
 
 engine = create_async_engine(
     DATABASE_URL,
@@ -67,5 +70,17 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 
 async def init_db():
     import app.models  # noqa: F401 - ensure models are registered on Base.metadata
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("Database tables verified and initialized successfully.")
+    except OSError as e:
+        if getattr(e, "errno", None) == 101 or "unreachable" in str(e).lower():
+            logger.critical(
+                "❌ Database connection failed: Network is unreachable (IPv6 incompatibility).\n"
+                "👉 Render is an IPv4-only network and cannot connect to Supabase direct host 'db.<project>.supabase.co' (IPv6-only).\n"
+                "👉 Solution: In Render Environment Variables, update DATABASE_URL to your Supabase Connection Pooler URI:\n"
+                "   postgresql+asyncpg://postgres.<PROJECT_REF>:<PASSWORD>@aws-0-<REGION>.pooler.supabase.com:6543/postgres\n"
+                "   (Find this in Supabase Dashboard -> Project Settings -> Database -> Connection string -> URI -> check 'Use connection pooler')"
+            )
+        raise
